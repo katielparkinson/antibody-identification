@@ -22,6 +22,10 @@ dist/
 *.log
 *.tsbuildinfo
 
+# Testing
+playwright-report/
+test-results/
+
 # SQLite runtime files
 data/*.sqlite
 data/*.sqlite-*

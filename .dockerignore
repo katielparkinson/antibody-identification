@@ -1,0 +1,12 @@
+node_modules
+.next
+.next-dev
+.git
+.gitignore
+README.md
+npm-debug.log
+Dockerfile
+.dockerignore
+playwright-report
+test-results
+data/*.sqlite
