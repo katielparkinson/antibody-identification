@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { antibodyById } from "./antibodyPolicy";
+import { antibodies, antibodyById } from "./antibodyPolicy";
 import { practiceCases } from "./practiceCases";
 import {
   canMarkRuleOut,
@@ -71,6 +71,14 @@ describe("rule-out engine", () => {
 
     expect(evaluation.status).toBe("ruled-out");
     expect(evaluation.homozygousRuleOuts).toEqual(["cell-1"]);
+  });
+
+  it("starts all antibodies as possible before user rule-outs", () => {
+    const summary = summarizeEvaluation(caseData, {});
+
+    expect(summary.ruledOut).toBe(0);
+    expect(summary.partial).toBe(0);
+    expect(summary.possible).toHaveLength(antibodies.length);
   });
 
   it("leaves the target antibody possible in the answer key", () => {

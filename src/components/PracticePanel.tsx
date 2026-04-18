@@ -177,7 +177,7 @@ export function PracticePanel() {
                       ? "Partial"
                       : evaluation.status === "possible"
                         ? "Possible"
-                        : ""}
+                        : "Unmarked"}
                 </th>
               ))}
             </tr>

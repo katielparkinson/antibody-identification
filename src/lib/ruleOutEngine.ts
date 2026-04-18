@@ -92,22 +92,12 @@ export const evaluateAntibody = (
     };
   }
 
-  if (caseData.targetAntibodies.includes(antibody.id)) {
-    return {
-      antibodyId: antibody.id,
-      status: "possible",
-      heterozygousRuleOuts,
-      homozygousRuleOuts,
-      explanation: `${antibody.label} still fits this reaction pattern.`,
-    };
-  }
-
   return {
     antibodyId: antibody.id,
-    status: "unmarked",
+    status: "possible",
     heterozygousRuleOuts,
     homozygousRuleOuts,
-    explanation: `${antibody.label} has not been ruled out yet.`,
+    explanation: `${antibody.label} has not been ruled out by your marks.`,
   };
 };
 
