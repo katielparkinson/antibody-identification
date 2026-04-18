@@ -1,0 +1,31 @@
+.codex
+.project-plan.md
+
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+
+# Production
+build/
+dist/
+
+# Environment
+.env
+.env*.local
+
+# Logs
+*.log
+
+# SQLite runtime files
+data/*.sqlite
+data/*.sqlite-*
+*.db
+*.db-*
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
