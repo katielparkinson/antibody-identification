@@ -30,6 +30,7 @@ npm run dev
 ## Validation
 
 ```bash
+bun run db:seed
 bun run typecheck
 bun run lint
 bun run test
