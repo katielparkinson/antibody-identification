@@ -19,6 +19,21 @@ const isRuleOutEligible = (cell: DonorCell, caseData: PracticeCase, antibody: An
   !isReactive(caseData.reactions[cell.id]) &&
   cell.antigens[antibody.antigenId] === "positive";
 
+export const canMarkRuleOut = (cell: DonorCell, caseData: PracticeCase, antibody: Antibody) =>
+  isRuleOutEligible(cell, caseData, antibody);
+
+export const cycleRuleOutMark = (current: RuleOutMark): RuleOutMark => {
+  if (current === "none") {
+    return "heterozygous";
+  }
+
+  if (current === "heterozygous") {
+    return "homozygous";
+  }
+
+  return "none";
+};
+
 export const getSuggestedMark = (
   cell: DonorCell,
   caseData: PracticeCase,

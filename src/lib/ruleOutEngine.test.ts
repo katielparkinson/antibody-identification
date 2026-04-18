@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { antibodyById } from "./antibodyPolicy";
 import { practiceCases } from "./practiceCases";
 import {
+  canMarkRuleOut,
   createAnswerKeyMarks,
+  cycleRuleOutMark,
   evaluateAntibody,
   getSuggestedMark,
   summarizeEvaluation,
@@ -18,6 +20,23 @@ describe("rule-out engine", () => {
     expect(antiE).toBeDefined();
     expect(reactiveCell).toBeDefined();
     expect(getSuggestedMark(reactiveCell!, caseData, antiE!)).toBe("none");
+    expect(canMarkRuleOut(reactiveCell!, caseData, antiE!)).toBe(false);
+  });
+
+  it("allows users to cycle dosage choices manually", () => {
+    expect(cycleRuleOutMark("none")).toBe("heterozygous");
+    expect(cycleRuleOutMark("heterozygous")).toBe("homozygous");
+    expect(cycleRuleOutMark("homozygous")).toBe("none");
+  });
+
+  it("allows marking nonreactive antigen-positive cells even when the answer is homozygous", () => {
+    const antiC = antibodyById.get("anti-C");
+    const homozygousCell = caseData.cells.find((cell) => cell.id === "cell-1");
+
+    expect(antiC).toBeDefined();
+    expect(homozygousCell).toBeDefined();
+    expect(getSuggestedMark(homozygousCell!, caseData, antiC!)).toBe("homozygous");
+    expect(canMarkRuleOut(homozygousCell!, caseData, antiC!)).toBe(true);
   });
 
   it("separates heterozygous and homozygous rule-out evidence", () => {

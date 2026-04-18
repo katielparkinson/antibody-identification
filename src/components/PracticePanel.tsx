@@ -4,7 +4,9 @@ import { useMemo, useState } from "react";
 import { antibodies, antigens } from "@/lib/antibodyPolicy";
 import { practiceCases } from "@/lib/practiceCases";
 import {
+  canMarkRuleOut,
   createAnswerKeyMarks,
+  cycleRuleOutMark,
   evaluatePanel,
   getSuggestedMark,
   isReactive,
@@ -16,18 +18,6 @@ const markLabels: Record<RuleOutMark, string> = {
   none: "",
   heterozygous: "Het",
   homozygous: "Hom",
-};
-
-const cycleMark = (current: RuleOutMark, suggested: RuleOutMark): RuleOutMark => {
-  if (current === "none") {
-    return suggested === "none" ? "heterozygous" : suggested;
-  }
-
-  if (current === "heterozygous") {
-    return "homozygous";
-  }
-
-  return "none";
 };
 
 const getMark = (marks: UserMarks, antibodyId: string, cellId: string): RuleOutMark =>
@@ -59,16 +49,13 @@ export function PracticePanel() {
   };
 
   const toggleMark = (antibody: Antibody, cell: DonorCell) => {
-    const suggested = getSuggestedMark(cell, caseData, antibody);
-    const reaction = caseData.reactions[cell.id];
-
-    if (cell.isAutoControl || isReactive(reaction) || cell.antigens[antibody.antigenId] !== "positive") {
+    if (!canMarkRuleOut(cell, caseData, antibody)) {
       return;
     }
 
     setMarks((currentMarks) => {
       const current = getMark(currentMarks, antibody.id, cell.id);
-      const next = cycleMark(current, suggested);
+      const next = cycleRuleOutMark(current);
       const antibodyMarks = { ...(currentMarks[antibody.id] ?? {}) };
 
       if (next === "none") {
@@ -149,10 +136,7 @@ export function PracticePanel() {
                   {antibodies.map((antibody) => {
                     const mark = getMark(marks, antibody.id, cell.id);
                     const suggested = getSuggestedMark(cell, caseData, antibody);
-                    const disabled =
-                      cell.isAutoControl ||
-                      isReactive(reaction) ||
-                      cell.antigens[antibody.antigenId] !== "positive";
+                    const disabled = !canMarkRuleOut(cell, caseData, antibody);
                     return (
                       <td key={`${cell.id}-${antibody.id}`}>
                         <button
@@ -162,7 +146,7 @@ export function PracticePanel() {
                           title={
                             disabled
                               ? "Rule-outs use nonreactive antigen-positive donor cells"
-                              : `Click to mark ${suggested === "homozygous" ? "homozygous" : "heterozygous"} rule-out`
+                              : `Click to cycle rule-out mark. Answer key expects ${suggested === "homozygous" ? "homozygous" : "heterozygous"} evidence.`
                           }
                           type="button"
                           onClick={() => toggleMark(antibody, cell)}
@@ -205,9 +189,9 @@ export function PracticePanel() {
         <article className="card">
           <h2>How To Use The Panel</h2>
           <p>
-            Click nonreactive antigen-positive cells to mark rule-outs. Dosage-sensitive
-            antibodies need homozygous evidence for a complete rule-out in this training
-            policy. Heterozygous evidence remains visible as partial.
+            Click nonreactive antigen-positive cells to cycle blank, heterozygous, and
+            homozygous marks. Dosage-sensitive antibodies need homozygous evidence for
+            a complete rule-out in this training policy.
           </p>
         </article>
         <article className="card">
