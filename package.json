@@ -5,8 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
+    "dev:compose": "docker compose -f compose.dev.yml up",
+    "dev:compose:down": "docker compose -f compose.dev.yml down",
+    "dev:compose:logs": "docker compose -f compose.dev.yml logs -f app",
     "build": "next build",
     "start": "next start",
+    "start:compose": "docker compose -f compose.prod.yml up --build",
+    "start:compose:down": "docker compose -f compose.prod.yml down",
     "db:seed": "tsx scripts/seed-sqlite.ts",
     "lint": "eslint",
     "test": "vitest run",
