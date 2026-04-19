@@ -79,8 +79,8 @@ jobs:
           TARGET_DIR="/opt/antibody-identification"
           COMPOSE_FILE="compose.prod.yml"
           ANTIBODY_IDENTIFICATION_IMAGE="${{ needs.build_image.outputs.image }}"
-          ANTIBODY_IDENTIFICATION_DOMAIN="${{ vars.DOMAIN }}"
-          ANTIBODY_IDENTIFICATION_PORT="3005"
+          DOMAIN="${{ vars.DOMAIN }}"
+          PORT="3005"
           SSH_HOST="${{ vars.HETZ_VPS1_DEPLOY_HOST }}"
           SSH_USER="${{ vars.HETZ_VPS1_DEPLOY_USER }}"
 
@@ -89,7 +89,7 @@ jobs:
             exit 1
           fi
 
-          if [ -z "$ANTIBODY_IDENTIFICATION_DOMAIN" ]; then
+          if [ -z "$DOMAIN" ]; then
             echo "Missing required domain"
             echo "Expected vars.DOMAIN"
             exit 1
@@ -100,8 +100,8 @@ jobs:
             "set -euo pipefail
              mkdir -p '$TARGET_DIR'
              cd '$TARGET_DIR'
-             printf 'ANTIBODY_IDENTIFICATION_IMAGE=%s\nANTIBODY_IDENTIFICATION_DOMAIN=%s\nANTIBODY_IDENTIFICATION_PORT=%s\n' \
-               '$ANTIBODY_IDENTIFICATION_IMAGE' '$ANTIBODY_IDENTIFICATION_DOMAIN' '$ANTIBODY_IDENTIFICATION_PORT' > .env
+             printf 'ANTIBODY_IDENTIFICATION_IMAGE=%s\nDOMAIN=%s\nPORT=%s\n' \
+               '$ANTIBODY_IDENTIFICATION_IMAGE' '$DOMAIN' '$PORT' > .env
              chmod 600 .env
              printf '%s\n' '${{ github.token }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
              docker compose --env-file .env -f '$COMPOSE_FILE' up -d --pull always --remove-orphans"

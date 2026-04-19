@@ -12,10 +12,10 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=infra_ingress
-      - traefik.http.routers.antibodyidentification.rule=Host(`${ANTIBODY_IDENTIFICATION_DOMAIN}`) || Host(`www.${ANTIBODY_IDENTIFICATION_DOMAIN}`)
+      - traefik.http.routers.antibodyidentification.rule=Host(`${DOMAIN}`) || Host(`www.${DOMAIN}`)
       - traefik.http.routers.antibodyidentification.entrypoints=websecure
       - traefik.http.routers.antibodyidentification.tls.certresolver=letsencrypt
-      - traefik.http.services.antibodyidentification.loadbalancer.server.port=${ANTIBODY_IDENTIFICATION_PORT}
+      - traefik.http.services.antibodyidentification.loadbalancer.server.port=${PORT}
 
 networks:
   ingress:
