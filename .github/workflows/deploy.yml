@@ -52,80 +52,56 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - name: Deploy via shared SSH action
-        uses: mckaymoore/github-actions/.github/actions/ssh@master
-        with:
-          enable_sync: true
-          source_dir: .
-          destination_dir: /opt/antibody-identification
-          strict_host_key_checking: true
-          ssh_host: ${{ vars.HETZ_VPS1_DEPLOY_HOST }}
-          ssh_user: ${{ vars.HETZ_VPS1_DEPLOY_USER }}
-          ssh_port: "22"
-          sync_exclude: |
-            .git/
-            .next/
-            .next-dev/
-            node_modules/
-            playwright-report/
-            test-results/
-          sync_include: |
-            compose.prod.yml
-          command: |
-            set -euo pipefail
+      - name: Write SSH key
+        run: |
+          set -euo pipefail
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "${{ secrets.HETZ_VPS1_DEPLOY_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
 
-            TARGET_DIR="/opt/antibody-identification"
-            COMPOSE_FILE="compose.prod.yml"
-            ANTIBODY_IDENTIFICATION_IMAGE="${{ needs.build_image.outputs.image }}"
-            ANTIBODY_IDENTIFICATION_DOMAIN="${{ vars.DOMAIN }}"
-            ANTIBODY_IDENTIFICATION_PORT="3005"
-            GHCR_USERNAME="${{ github.actor }}"
-            GHCR_TOKEN="${{ github.token }}"
+      - name: Trust deploy host
+        run: |
+          set -euo pipefail
+          ssh-keyscan -H "${{ vars.HETZ_VPS1_DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
 
-            if [ -z "$ANTIBODY_IDENTIFICATION_IMAGE" ]; then
-              echo "Missing required image name"
-              exit 1
-            fi
+      - name: Copy compose file
+        run: |
+          set -euo pipefail
+          scp -i ~/.ssh/id_rsa -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            compose.prod.yml \
+            "${{ vars.HETZ_VPS1_DEPLOY_USER }}@${{ vars.HETZ_VPS1_DEPLOY_HOST }}:/opt/antibody-identification/compose.prod.yml"
 
-            if [ -z "$ANTIBODY_IDENTIFICATION_DOMAIN" ]; then
-              echo "Missing required domain"
-              echo "Expected vars.DOMAIN"
-              exit 1
-            fi
+      - name: Deploy with SSH
+        run: |
+          set -euo pipefail
 
-            if [ -z "$ANTIBODY_IDENTIFICATION_PORT" ]; then
-              echo "Missing required app port"
-              echo "Expected vars.PORT"
-              exit 1
-            fi
+          TARGET_DIR="/opt/antibody-identification"
+          COMPOSE_FILE="compose.prod.yml"
+          ANTIBODY_IDENTIFICATION_IMAGE="${{ needs.build_image.outputs.image }}"
+          ANTIBODY_IDENTIFICATION_DOMAIN="${{ vars.DOMAIN }}"
+          ANTIBODY_IDENTIFICATION_PORT="3005"
+          SSH_HOST="${{ vars.HETZ_VPS1_DEPLOY_HOST }}"
+          SSH_USER="${{ vars.HETZ_VPS1_DEPLOY_USER }}"
 
-            if ! [[ "$ANTIBODY_IDENTIFICATION_PORT" =~ ^[0-9]+$ ]]; then
-              echo "Invalid app port: must be numeric"
-              echo "Got: $ANTIBODY_IDENTIFICATION_PORT"
-              exit 1
-            fi
+          if [ -z "$ANTIBODY_IDENTIFICATION_IMAGE" ]; then
+            echo "Missing required image name"
+            exit 1
+          fi
 
-            if [ "$ANTIBODY_IDENTIFICATION_PORT" -lt 1 ] || [ "$ANTIBODY_IDENTIFICATION_PORT" -gt 65535 ]; then
-              echo "Invalid app port: out of range"
-              echo "Expected 1-65535, got: $ANTIBODY_IDENTIFICATION_PORT"
-              exit 1
-            fi
+          if [ -z "$ANTIBODY_IDENTIFICATION_DOMAIN" ]; then
+            echo "Missing required domain"
+            echo "Expected vars.DOMAIN"
+            exit 1
+          fi
 
-            mkdir -p "$TARGET_DIR"
-            printf "ANTIBODY_IDENTIFICATION_IMAGE=%s\nANTIBODY_IDENTIFICATION_DOMAIN=%s\nANTIBODY_IDENTIFICATION_PORT=%s\n" \
-              "$ANTIBODY_IDENTIFICATION_IMAGE" "$ANTIBODY_IDENTIFICATION_DOMAIN" "$ANTIBODY_IDENTIFICATION_PORT" > "$TARGET_DIR/.env"
-
-            chmod 600 "$TARGET_DIR/.env"
-
-            if [ -n "$GHCR_TOKEN" ]; then
-              echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-            fi
-
-            if [ ! -f "$TARGET_DIR/$COMPOSE_FILE" ]; then
-              echo "Missing compose file: $COMPOSE_FILE"
-              exit 1
-            fi
-
-            cd "$TARGET_DIR"
-            docker compose --env-file .env -f "$COMPOSE_FILE" up -d --pull always --remove-orphans
-          ssh_private_key: ${{ secrets.HETZ_VPS1_DEPLOY_SSH_KEY }}
+          ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "${SSH_USER}@${SSH_HOST}" \
+            "set -euo pipefail
+             mkdir -p '$TARGET_DIR'
+             cd '$TARGET_DIR'
+             printf 'ANTIBODY_IDENTIFICATION_IMAGE=%s\nANTIBODY_IDENTIFICATION_DOMAIN=%s\nANTIBODY_IDENTIFICATION_PORT=%s\n' \
+               '$ANTIBODY_IDENTIFICATION_IMAGE' '$ANTIBODY_IDENTIFICATION_DOMAIN' '$ANTIBODY_IDENTIFICATION_PORT' > .env
+             chmod 600 .env
+             printf '%s\n' '${{ github.token }}' | docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+             docker compose --env-file .env -f '$COMPOSE_FILE' up -d --pull always --remove-orphans"
