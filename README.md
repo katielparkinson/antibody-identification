@@ -45,6 +45,8 @@ Development:
 docker compose -f compose.dev.yml up
 ```
 
+Then open http://localhost:3005.
+
 Production:
 
 ```bash

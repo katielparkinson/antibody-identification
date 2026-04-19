@@ -78,7 +78,7 @@ jobs:
             COMPOSE_FILE="compose.prod.yml"
             ANTIBODY_IDENTIFICATION_IMAGE="${{ needs.build_image.outputs.image }}"
             ANTIBODY_IDENTIFICATION_DOMAIN="${{ vars.DOMAIN }}"
-            ANTIBODY_IDENTIFICATION_PORT="${{ vars.PORT }}"
+            ANTIBODY_IDENTIFICATION_PORT="3005"
             GHCR_USERNAME="${{ github.actor }}"
             GHCR_TOKEN="${{ github.token }}"
 
