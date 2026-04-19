@@ -10,7 +10,7 @@
     "dev:compose:logs": "docker compose -f compose.dev.yml logs -f app",
     "build": "next build",
     "start": "next start",
-    "start:compose": "docker compose -f compose.prod.yml up --build",
+    "start:compose": "docker compose -f compose.prod.yml up -d --pull always",
     "start:compose:down": "docker compose -f compose.prod.yml down",
     "db:seed": "tsx scripts/seed-sqlite.ts",
     "lint": "eslint",

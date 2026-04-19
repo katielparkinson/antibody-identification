@@ -1,11 +1,23 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: antibody-identification:local
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-      NEXT_TELEMETRY_DISABLED: "1"
+    image: ${ANTIBODY_IDENTIFICATION_IMAGE}
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    networks:
+      - app
+      - ingress
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=infra_ingress
+      - traefik.http.routers.antibodyidentification.rule=Host(`${ANTIBODY_IDENTIFICATION_DOMAIN}`) || Host(`www.${ANTIBODY_IDENTIFICATION_DOMAIN}`)
+      - traefik.http.routers.antibodyidentification.entrypoints=websecure
+      - traefik.http.routers.antibodyidentification.tls.certresolver=letsencrypt
+      - traefik.http.services.antibodyidentification.loadbalancer.server.port=${ANTIBODY_IDENTIFICATION_PORT}
+
+networks:
+  ingress:
+    external: true
+    name: infra_ingress
+  app:
+    driver: bridge

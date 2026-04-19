@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
+      <body suppressHydrationWarning>
         <header className="site-header">
           <Link className="brand" href="/">
             Antibody Identification
