@@ -3,7 +3,8 @@ name: Deploy antibodyidentification
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -62,15 +63,22 @@ jobs:
       - name: Trust deploy host
         run: |
           set -euo pipefail
-          ssh-keyscan -H "${{ vars.HETZ_VPS1_DEPLOY_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H "${{ secrets.HETZ_VPS1_DEPLOY_HOST }}" >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
+
+      - name: Ensure remote deploy directory exists
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_rsa -o BatchMode=yes -o StrictHostKeyChecking=yes \
+            "${{ secrets.HETZ_VPS1_DEPLOY_USER }}@${{ secrets.HETZ_VPS1_DEPLOY_HOST }}" \
+            "mkdir -p /opt/antibody-identification"
 
       - name: Copy compose file
         run: |
           set -euo pipefail
           scp -i ~/.ssh/id_rsa -o BatchMode=yes -o StrictHostKeyChecking=yes \
             compose.prod.yml \
-            "${{ vars.HETZ_VPS1_DEPLOY_USER }}@${{ vars.HETZ_VPS1_DEPLOY_HOST }}:/opt/antibody-identification/compose.prod.yml"
+            "${{ secrets.HETZ_VPS1_DEPLOY_USER }}@${{ secrets.HETZ_VPS1_DEPLOY_HOST }}:/opt/antibody-identification/compose.prod.yml"
 
       - name: Deploy with SSH
         run: |
@@ -81,8 +89,8 @@ jobs:
           ANTIBODY_IDENTIFICATION_IMAGE="${{ needs.build_image.outputs.image }}"
           DOMAIN="${{ vars.DOMAIN }}"
           PORT="3005"
-          SSH_HOST="${{ vars.HETZ_VPS1_DEPLOY_HOST }}"
-          SSH_USER="${{ vars.HETZ_VPS1_DEPLOY_USER }}"
+          SSH_HOST="${{ secrets.HETZ_VPS1_DEPLOY_HOST }}"
+          SSH_USER="${{ secrets.HETZ_VPS1_DEPLOY_USER }}"
 
           if [ -z "$ANTIBODY_IDENTIFICATION_IMAGE" ]; then
             echo "Missing required image name"
