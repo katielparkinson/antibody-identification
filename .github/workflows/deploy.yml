@@ -70,12 +70,12 @@ jobs:
             playwright-report/
             test-results/
           sync_include: |
-            compose.yml
+            compose.prod.yml
           command: |
             set -euo pipefail
 
             TARGET_DIR="/opt/antibody-identification"
-            COMPOSE_FILE="compose.yml"
+            COMPOSE_FILE="compose.prod.yml"
             ANTIBODY_IDENTIFICATION_IMAGE="${{ needs.build_image.outputs.image }}"
             ANTIBODY_IDENTIFICATION_DOMAIN="${{ vars.DOMAIN }}"
             ANTIBODY_IDENTIFICATION_PORT="${{ vars.PORT }}"

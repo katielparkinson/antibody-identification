@@ -42,11 +42,11 @@ bun run build
 Development:
 
 ```bash
-docker compose -f compose.dev.yml up --build
+docker compose -f compose.dev.yml up
 ```
 
 Production:
 
 ```bash
-docker compose -f compose.prod.yml up --build
+docker compose -f compose.prod.yml up -d --pull always
 ```
