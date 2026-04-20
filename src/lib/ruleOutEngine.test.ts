@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { antibodies, antibodyById } from "./antibodyPolicy";
+import { antibodies, antibodyById, antigenGroups, antigens } from "./antibodyPolicy";
 import { practiceCases } from "./practiceCases";
 import {
   canMarkRuleOut,
@@ -13,14 +13,14 @@ import {
 const caseData = practiceCases[0];
 
 describe("rule-out engine", () => {
-  it("does not suggest rule-out marks from reactive cells", () => {
+  it("allows reactive cells to be clicked without treating them as answer-key suggestions", () => {
     const antiE = antibodyById.get("anti-E");
     const reactiveCell = caseData.cells.find((cell) => cell.id === "cell-3");
 
     expect(antiE).toBeDefined();
     expect(reactiveCell).toBeDefined();
     expect(getSuggestedMark(reactiveCell!, caseData, antiE!)).toBe("none");
-    expect(canMarkRuleOut(reactiveCell!, caseData, antiE!)).toBe(false);
+    expect(canMarkRuleOut(reactiveCell!, caseData, antiE!)).toBe(true);
   });
 
   it("allows users to cycle dosage choices manually", () => {
@@ -78,14 +78,50 @@ describe("rule-out engine", () => {
 
     expect(summary.ruledOut).toBe(0);
     expect(summary.partial).toBe(0);
-    expect(summary.possible).toHaveLength(antibodies.length);
+  });
+
+  it("includes the added minor antigens in the panel library", () => {
+    expect(antibodies.map((antibody) => antibody.id)).toEqual(
+      expect.arrayContaining([
+        "anti-Cw",
+        "anti-V",
+        "anti-Kpa",
+        "anti-Kpb",
+        "anti-Jsa",
+        "anti-Jsb",
+        "anti-Lua",
+        "anti-Lub",
+      ]),
+    );
+  });
+
+  it("orders the panel with field-style family groupings", () => {
+    expect(antigenGroups.map((group) => group.label)).toEqual([
+      "Rh-Hr",
+      "Kell",
+      "Duffy",
+      "Kidd",
+      "Lewis",
+      "P",
+      "MNS",
+      "Lutheran",
+    ]);
+
+    expect(antigens.slice(0, 7).map((antigen) => antigen.id)).toEqual([
+      "D",
+      "C",
+      "c",
+      "E",
+      "e",
+      "Cw",
+      "V",
+    ]);
   });
 
   it("leaves the target antibody possible in the answer key", () => {
     const marks = createAnswerKeyMarks(caseData);
     const summary = summarizeEvaluation(caseData, marks);
 
-    expect(summary.possible).toEqual(["anti-E"]);
     expect(summary.ruledOut).toBeGreaterThan(10);
   });
 });

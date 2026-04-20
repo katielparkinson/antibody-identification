@@ -1,18 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { antibodies, antigens } from "@/lib/antibodyPolicy";
+import { antibodies, antigenGroups, antigens } from "@/lib/antibodyPolicy";
 import { practiceCases } from "@/lib/practiceCases";
 import {
   canMarkRuleOut,
   createAnswerKeyMarks,
   cycleRuleOutMark,
   evaluatePanel,
-  getSuggestedMark,
   isReactive,
   summarizeEvaluation,
 } from "@/lib/ruleOutEngine";
 import type { Antibody, DonorCell, RuleOutMark, UserMarks } from "@/lib/types";
+import type { CSSProperties } from "react";
 
 const markLabels: Record<RuleOutMark, string> = {
   none: "",
@@ -31,6 +31,19 @@ const antigenDisplay = (cell: DonorCell, antibody: Antibody) => {
   return antigen === "positive" ? "+" : "0";
 };
 
+type PanelTableStyle = CSSProperties & {
+  ["--antibody-count"]: number;
+  ["--status-col-width"]: string;
+};
+
+const familyDividerAntigenIds = new Set(
+  antigenGroups
+    .map((group) => group.antigenIds[group.antigenIds.length - 1])
+    .filter((antigenId): antigenId is string => Boolean(antigenId)),
+);
+
+const isFamilyDivider = (antigenId: string) => familyDividerAntigenIds.has(antigenId);
+
 export function PracticePanel() {
   const [caseId, setCaseId] = useState(practiceCases[0].id);
   const [marks, setMarks] = useState<UserMarks>({});
@@ -40,7 +53,11 @@ export function PracticePanel() {
   const evaluations = useMemo(() => evaluatePanel(caseData, marks), [caseData, marks]);
   const summary = useMemo(() => summarizeEvaluation(caseData, marks), [caseData, marks]);
   const answerMarks = useMemo(() => createAnswerKeyMarks(caseData), [caseData]);
-  const answerSummary = useMemo(() => summarizeEvaluation(caseData, answerMarks), [caseData, answerMarks]);
+  const panelTableStyle: PanelTableStyle = {
+    "--antibody-count": antibodies.length,
+    "--status-col-width": "92px",
+    minWidth: `${72 + 80 + antibodies.length * 38}px`,
+  };
 
   const changeCase = (nextCaseId: string) => {
     setCaseId(nextCaseId);
@@ -99,7 +116,10 @@ export function PracticePanel() {
         </div>
       </div>
 
-      <p className="lede">{caseData.summary}</p>
+      <p className="lede">
+        Practice the panel, make your own rule-out calls, and use the reveal button when
+        you are ready to check the answer.
+      </p>
 
       <div className="status-row" aria-label="Current rule-out summary">
         <span className="pill">
@@ -108,19 +128,44 @@ export function PracticePanel() {
         <span className="pill">
           Partial: <strong>{summary.partial}</strong>
         </span>
-        <span className="pill">
-          Still possible: <strong>{summary.possible.length}</strong>
-        </span>
       </div>
 
       <div className="table-wrap">
-        <table className="panel-table">
+        <table className="panel-table" style={panelTableStyle}>
+          <colgroup>
+            <col className="panel-col-cell" />
+            <col className="panel-col-reaction" />
+            {antigens.map((antigen) => (
+              <col key={antigen.id} className="panel-col-antibody" />
+            ))}
+          </colgroup>
           <thead>
             <tr>
-              <th className="sticky-col">Cell</th>
-              <th>Reaction</th>
+              <th className="sticky-col" rowSpan={2}>
+                Cell
+              </th>
+              <th className="sticky-col reaction-col" rowSpan={2}>
+                Reaction
+              </th>
+              {antigenGroups.map((group, index) => (
+                <th
+                  className={["group-header", index < antigenGroups.length - 1 ? "group-divider" : ""].join(" ")}
+                  colSpan={group.antigenIds.length}
+                  key={group.label}
+                >
+                  {group.label}
+                </th>
+              ))}
+            </tr>
+            <tr>
               {antigens.map((antigen) => (
-                <th key={antigen.id}>{antigen.label}</th>
+                <th
+                  className={isFamilyDivider(antigen.id) ? "group-divider" : undefined}
+                  key={antigen.id}
+                  title={antigen.system}
+                >
+                  {antigen.label}
+                </th>
               ))}
             </tr>
           </thead>
@@ -130,23 +175,31 @@ export function PracticePanel() {
               return (
                 <tr key={cell.id}>
                   <td className="sticky-col">{cell.label}</td>
-                  <td className={isReactive(reaction) ? "reaction-positive" : "reaction-negative"}>
+                  <td
+                    className={[
+                      "sticky-col",
+                      "reaction-col",
+                      isReactive(reaction) ? "reaction-positive" : "reaction-negative",
+                    ].join(" ")}
+                  >
                     {reaction}
                   </td>
                   {antibodies.map((antibody) => {
                     const mark = getMark(marks, antibody.id, cell.id);
-                    const suggested = getSuggestedMark(cell, caseData, antibody);
                     const disabled = !canMarkRuleOut(cell, caseData, antibody);
                     return (
-                      <td key={`${cell.id}-${antibody.id}`}>
+                      <td
+                        className={isFamilyDivider(antibody.antigenId) ? "group-divider" : undefined}
+                        key={`${cell.id}-${antibody.id}`}
+                      >
                         <button
                           aria-label={`${cell.label} ${antibody.label} ${antigenDisplay(cell, antibody)}`}
                           className="antigen-cell"
                           disabled={disabled}
                           title={
-                            disabled
-                              ? "Rule-outs use nonreactive antigen-positive donor cells"
-                              : `Click to cycle rule-out mark. Answer key expects ${suggested === "homozygous" ? "homozygous" : "heterozygous"} evidence.`
+                            !canMarkRuleOut(cell, caseData, antibody)
+                              ? "This cell is not eligible for rule-out marking."
+                              : "Click to cycle rule-out mark."
                           }
                           type="button"
                           onClick={() => toggleMark(antibody, cell)}
@@ -164,10 +217,14 @@ export function PracticePanel() {
           <tfoot>
             <tr>
               <th className="sticky-col">Status</th>
-              <th />
-              {evaluations.map((evaluation) => (
+              <th className="sticky-col reaction-col status-col" />
+              {evaluations.map((evaluation, index) => (
                 <th
-                  className={evaluation.status === "ruled-out" ? "antibody-ruled-out" : undefined}
+                  className={[
+                    "status-col",
+                    evaluation.status === "ruled-out" ? "antibody-ruled-out" : "",
+                    familyDividerAntigenIds.has(antibodies[index]?.antigenId) ? "group-divider" : "",
+                  ].join(" ")}
                   key={evaluation.antibodyId}
                   title={evaluation.explanation}
                 >
@@ -175,9 +232,7 @@ export function PracticePanel() {
                     ? "Out"
                     : evaluation.status === "partial"
                       ? "Partial"
-                      : evaluation.status === "possible"
-                        ? "Possible"
-                        : "Unmarked"}
+                      : ""}
                 </th>
               ))}
             </tr>
@@ -189,18 +244,21 @@ export function PracticePanel() {
         <article className="card">
           <h2>How To Use The Panel</h2>
           <p>
-            Click nonreactive antigen-positive cells to cycle blank, heterozygous, and
-            homozygous marks. Dosage-sensitive antibodies need homozygous evidence for
-            a complete rule-out in this training policy.
+            Click antigen-positive cells to cycle blank, heterozygous, and homozygous
+            marks. Reactive cells stay clickable in practice mode so you can test your
+            own judgment. Dosage-sensitive antibodies need homozygous evidence for a
+            complete rule-out in this training policy.
           </p>
         </article>
         <article className="card">
           <h2>Answer Check</h2>
           {showAnswer ? (
-            <p>
-              Expected remaining antibody: <strong>{answerSummary.possible.join(", ")}</strong>.
-              Your current marks now show the full answer key for this synthetic case.
-            </p>
+            <>
+              <p className="answer-summary">{caseData.summary}</p>
+              <p>
+                Your current marks now show the full answer key for this synthetic case.
+              </p>
+            </>
           ) : (
             <p>
               Try to rule out every antibody except the one that fits the reaction pattern,

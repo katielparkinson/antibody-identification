@@ -14,13 +14,14 @@ const reactiveValues = new Set<ReactionValue>(["w+", "1+", "2+", "3+", "4+", "mf
 export const isReactive = (reaction: ReactionValue | undefined) =>
   reaction !== undefined && reactiveValues.has(reaction);
 
-const isRuleOutEligible = (cell: DonorCell, caseData: PracticeCase, antibody: Antibody) =>
-  !cell.isAutoControl &&
-  !isReactive(caseData.reactions[cell.id]) &&
-  cell.antigens[antibody.antigenId] === "positive";
+const isRuleOutEligible = (cell: DonorCell, antibody: Antibody) =>
+  !cell.isAutoControl && cell.antigens[antibody.antigenId] === "positive";
 
-export const canMarkRuleOut = (cell: DonorCell, caseData: PracticeCase, antibody: Antibody) =>
-  isRuleOutEligible(cell, caseData, antibody);
+const isSuggestedRuleOutCell = (cell: DonorCell, caseData: PracticeCase, antibody: Antibody) =>
+  isRuleOutEligible(cell, antibody) && !isReactive(caseData.reactions[cell.id]);
+
+export const canMarkRuleOut = (cell: DonorCell, _caseData: PracticeCase, antibody: Antibody) =>
+  isRuleOutEligible(cell, antibody);
 
 export const cycleRuleOutMark = (current: RuleOutMark): RuleOutMark => {
   if (current === "none") {
@@ -39,7 +40,7 @@ export const getSuggestedMark = (
   caseData: PracticeCase,
   antibody: Antibody,
 ): RuleOutMark => {
-  if (!isRuleOutEligible(cell, caseData, antibody)) {
+  if (!isSuggestedRuleOutCell(cell, caseData, antibody)) {
     return "none";
   }
 
@@ -127,6 +128,5 @@ export const summarizeEvaluation = (caseData: PracticeCase, userMarks: UserMarks
   return {
     ruledOut: evaluations.filter((item) => item.status === "ruled-out").length,
     partial: evaluations.filter((item) => item.status === "partial").length,
-    possible: evaluations.filter((item) => item.status === "possible").map((item) => item.antibodyId),
   };
 };
