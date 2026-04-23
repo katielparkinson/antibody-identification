@@ -66,7 +66,7 @@ export function PracticePanel() {
   };
 
   const toggleMark = (antibody: Antibody, cell: DonorCell) => {
-    if (!canMarkRuleOut(cell, caseData, antibody)) {
+    if (!canMarkRuleOut(cell, antibody)) {
       return;
     }
 
@@ -186,7 +186,7 @@ export function PracticePanel() {
                   </td>
                   {antibodies.map((antibody) => {
                     const mark = getMark(marks, antibody.id, cell.id);
-                    const disabled = !canMarkRuleOut(cell, caseData, antibody);
+                    const disabled = !canMarkRuleOut(cell, antibody);
                     return (
                       <td
                         className={isFamilyDivider(antibody.antigenId) ? "group-divider" : undefined}
@@ -197,7 +197,7 @@ export function PracticePanel() {
                           className="antigen-cell"
                           disabled={disabled}
                           title={
-                            !canMarkRuleOut(cell, caseData, antibody)
+                            !canMarkRuleOut(cell, antibody)
                               ? "This cell is not eligible for rule-out marking."
                               : "Click to cycle rule-out mark."
                           }

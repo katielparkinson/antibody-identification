@@ -20,8 +20,20 @@ const isRuleOutEligible = (cell: DonorCell, antibody: Antibody) =>
 const isSuggestedRuleOutCell = (cell: DonorCell, caseData: PracticeCase, antibody: Antibody) =>
   isRuleOutEligible(cell, antibody) && !isReactive(caseData.reactions[cell.id]);
 
-export const canMarkRuleOut = (cell: DonorCell, _caseData: PracticeCase, antibody: Antibody) =>
-  isRuleOutEligible(cell, antibody);
+const getValidRuleOutCell = (caseData: PracticeCase, cellId: string, antibody: Antibody) => {
+  const cell = caseData.cells.find((candidate) => candidate.id === cellId);
+  if (!cell || !isRuleOutEligible(cell, antibody)) {
+    return undefined;
+  }
+
+  if (isReactive(caseData.reactions[cell.id])) {
+    return undefined;
+  }
+
+  return cell;
+};
+
+export const canMarkRuleOut = (cell: DonorCell, antibody: Antibody) => isRuleOutEligible(cell, antibody);
 
 export const cycleRuleOutMark = (current: RuleOutMark): RuleOutMark => {
   if (current === "none") {
@@ -44,10 +56,6 @@ export const getSuggestedMark = (
     return "none";
   }
 
-  if (!antibody.dosageSensitive) {
-    return "homozygous";
-  }
-
   const zygosity = cell.zygosity[antibody.antigenId];
   if (zygosity === "homozygous") {
     return "homozygous";
@@ -67,10 +75,40 @@ export const evaluateAntibody = (
 ): AntibodyEvaluation => {
   const marks = userMarks[antibody.id] ?? {};
   const heterozygousRuleOuts = Object.entries(marks)
-    .filter(([, mark]) => mark === "heterozygous")
+    .filter(([cellId, mark]) => {
+      if (mark !== "heterozygous") {
+        return false;
+      }
+
+      const cell = getValidRuleOutCell(caseData, cellId, antibody);
+      if (!cell) {
+        return false;
+      }
+
+      if (!antibody.dosageSensitive) {
+        return true;
+      }
+
+      return cell.zygosity[antibody.antigenId] === "heterozygous";
+    })
     .map(([cellId]) => cellId);
   const homozygousRuleOuts = Object.entries(marks)
-    .filter(([, mark]) => mark === "homozygous")
+    .filter(([cellId, mark]) => {
+      if (mark !== "homozygous") {
+        return false;
+      }
+
+      const cell = getValidRuleOutCell(caseData, cellId, antibody);
+      if (!cell) {
+        return false;
+      }
+
+      if (!antibody.dosageSensitive) {
+        return true;
+      }
+
+      return cell.zygosity[antibody.antigenId] === "homozygous";
+    })
     .map(([cellId]) => cellId);
 
   if (homozygousRuleOuts.length > 0) {
@@ -79,23 +117,25 @@ export const evaluateAntibody = (
       status: "ruled-out",
       heterozygousRuleOuts,
       homozygousRuleOuts,
-      explanation: `${antibody.label} is ruled out by nonreactive antigen-positive cell evidence.`,
+      explanation: `${antibody.label} is ruled out by valid nonreactive antigen-positive cell evidence.`,
     };
   }
 
   if (heterozygousRuleOuts.length > 0) {
     return {
       antibodyId: antibody.id,
-      status: "partial",
+      status: antibody.dosageSensitive ? "partial" : "ruled-out",
       heterozygousRuleOuts,
       homozygousRuleOuts,
-      explanation: `${antibody.label} has only heterozygous rule-out evidence, so it remains incomplete for dosage-sensitive policy.`,
+      explanation: antibody.dosageSensitive
+        ? `${antibody.label} has only heterozygous rule-out evidence, so it remains partial under dosage-sensitive policy.`
+        : `${antibody.label} is ruled out by a valid nonreactive antigen-positive cell.`,
     };
   }
 
   return {
     antibodyId: antibody.id,
-    status: "possible",
+    status: "unmarked",
     heterozygousRuleOuts,
     homozygousRuleOuts,
     explanation: `${antibody.label} has not been ruled out by your marks.`,

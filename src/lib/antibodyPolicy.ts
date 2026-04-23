@@ -1,52 +1,59 @@
 import type { Antibody, Antigen } from "./types";
 
 export const antigens: Antigen[] = [
-  { id: "D", label: "D", system: "Rh", displayOrder: 10 },
-  { id: "C", label: "C", system: "Rh", displayOrder: 20 },
-  { id: "c", label: "c", system: "Rh", displayOrder: 40 },
-  { id: "E", label: "E", system: "Rh", displayOrder: 30 },
-  { id: "e", label: "e", system: "Rh", displayOrder: 50 },
-  { id: "Cw", label: "Cw", system: "Rh", displayOrder: 35 },
-  { id: "V", label: "V", system: "Rh", displayOrder: 55 },
-  { id: "K", label: "K", system: "Kell", displayOrder: 130 },
-  { id: "k", label: "k", system: "Kell", displayOrder: 140 },
-  { id: "Kpa", label: "Kpa", system: "Kell", displayOrder: 145 },
-  { id: "Kpb", label: "Kpb", system: "Kell", displayOrder: 146 },
-  { id: "Jsa", label: "Jsa", system: "Kell", displayOrder: 147 },
-  { id: "Jsb", label: "Jsb", system: "Kell", displayOrder: 148 },
-  { id: "Fya", label: "Fya", system: "Duffy", displayOrder: 150 },
-  { id: "Fyb", label: "Fyb", system: "Duffy", displayOrder: 160 },
-  { id: "Jka", label: "Jka", system: "Kidd", displayOrder: 170 },
-  { id: "Jkb", label: "Jkb", system: "Kidd", displayOrder: 180 },
-  { id: "Lea", label: "Lea", system: "Lewis", displayOrder: 190 },
-  { id: "Leb", label: "Leb", system: "Lewis", displayOrder: 191 },
-  { id: "P1", label: "P1", system: "P1PK", displayOrder: 200 },
-  { id: "M", label: "M", system: "MNS", displayOrder: 210 },
-  { id: "N", label: "N", system: "MNS", displayOrder: 220 },
-  { id: "S", label: "S", system: "MNS", displayOrder: 230 },
-  { id: "s", label: "s", system: "MNS", displayOrder: 240 },
-  { id: "Lua", label: "Lua", system: "Lutheran", displayOrder: 250 },
-  { id: "Lub", label: "Lub", system: "Lutheran", displayOrder: 260 },
+  { id: "D", label: "D", system: "Rh" },
+  { id: "C", label: "C", system: "Rh" },
+  { id: "c", label: "c", system: "Rh" },
+  { id: "E", label: "E", system: "Rh" },
+  { id: "e", label: "e", system: "Rh" },
+  { id: "Cw", label: "Cw", system: "Rh" },
+  { id: "V", label: "V", system: "Rh" },
+  { id: "K", label: "K", system: "Kell" },
+  { id: "k", label: "k", system: "Kell" },
+  { id: "Kpa", label: "Kpa", system: "Kell" },
+  { id: "Kpb", label: "Kpb", system: "Kell" },
+  { id: "Jsa", label: "Jsa", system: "Kell" },
+  { id: "Jsb", label: "Jsb", system: "Kell" },
+  { id: "Fya", label: "Fya", system: "Duffy" },
+  { id: "Fyb", label: "Fyb", system: "Duffy" },
+  { id: "Jka", label: "Jka", system: "Kidd" },
+  { id: "Jkb", label: "Jkb", system: "Kidd" },
+  { id: "Lea", label: "Lea", system: "Lewis" },
+  { id: "Leb", label: "Leb", system: "Lewis" },
+  { id: "P1", label: "P1", system: "P1PK" },
+  { id: "M", label: "M", system: "MNS" },
+  { id: "N", label: "N", system: "MNS" },
+  { id: "S", label: "S", system: "MNS" },
+  { id: "s", label: "s", system: "MNS" },
+  { id: "Lua", label: "Lua", system: "Lutheran" },
+  { id: "Lub", label: "Lub", system: "Lutheran" },
 ];
 
-const dosageSensitive = new Set(["C", "E", "c", "e", "M", "N", "S", "s", "Fya", "Fyb", "Jka", "Jkb"]);
+export const dosageSensitiveAntigenIds = new Set([
+  "C",
+  "c",
+  "E",
+  "e",
+  "Fya",
+  "Fyb",
+  "Jka",
+  "Jkb",
+  "M",
+  "N",
+  "S",
+  "s",
+]);
 
 export const antibodies: Antibody[] = antigens.map((antigen) => ({
   id: `anti-${antigen.id}`,
   label: `Anti-${antigen.label}`,
   antigenId: antigen.id,
-  dosageSensitive: dosageSensitive.has(antigen.id),
-  displayOrder: antigen.displayOrder,
+  dosageSensitive: dosageSensitiveAntigenIds.has(antigen.id),
 }));
 
 export const antibodyById = new Map(antibodies.map((antibody) => [antibody.id, antibody]));
 
-export type AntigenGroup = {
-  label: string;
-  antigenIds: string[];
-};
-
-export const antigenGroups: AntigenGroup[] = [
+export const antigenGroups = [
   { label: "Rh-Hr", antigenIds: ["D", "C", "E", "Cw", "c", "e", "V"] },
   { label: "Kell", antigenIds: ["K", "k", "Kpa", "Kpb", "Jsa", "Jsb"] },
   { label: "Duffy", antigenIds: ["Fya", "Fyb"] },

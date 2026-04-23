@@ -1,16 +1,14 @@
 CREATE TABLE antigens (
   id TEXT PRIMARY KEY,
   label TEXT NOT NULL,
-  blood_group_system TEXT NOT NULL,
-  display_order INTEGER NOT NULL
+  blood_group_system TEXT NOT NULL
 );
 
 CREATE TABLE antibodies (
   id TEXT PRIMARY KEY,
   label TEXT NOT NULL,
   antigen_id TEXT NOT NULL REFERENCES antigens(id),
-  dosage_sensitive INTEGER NOT NULL,
-  display_order INTEGER NOT NULL
+  dosage_sensitive INTEGER NOT NULL
 );
 
 CREATE TABLE practice_cases (
@@ -39,10 +37,4 @@ CREATE TABLE case_reactions (
   donor_cell_id TEXT NOT NULL REFERENCES donor_cells(id),
   reaction_value TEXT NOT NULL CHECK (reaction_value IN ('0', 'w+', '1+', '2+', '3+', '4+', 'mf')),
   PRIMARY KEY (practice_case_id, donor_cell_id)
-);
-
-CREATE TABLE case_answers (
-  practice_case_id TEXT NOT NULL REFERENCES practice_cases(id),
-  antibody_id TEXT NOT NULL REFERENCES antibodies(id),
-  PRIMARY KEY (practice_case_id, antibody_id)
 );

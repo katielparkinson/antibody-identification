@@ -3,6 +3,7 @@ import path from "node:path";
 import initSqlJs from "sql.js";
 import { antibodies, antigens } from "../src/lib/antibodyPolicy";
 import { practiceCases } from "../src/lib/practiceCases";
+import { inferCellZygosity } from "../src/lib/zygosity";
 
 const databasePath = path.join(process.cwd(), "data", "antibody-identification.sqlite");
 const schemaPath = path.join(process.cwd(), "data", "schema.sql");
@@ -23,24 +24,18 @@ const main = async () => {
   db.run(schema);
 
   const insertAntigen = db.prepare(
-    "INSERT INTO antigens (id, label, blood_group_system, display_order) VALUES (?, ?, ?, ?)",
+    "INSERT INTO antigens (id, label, blood_group_system) VALUES (?, ?, ?)",
   );
   for (const antigen of antigens) {
-    insertAntigen.run([antigen.id, antigen.label, antigen.system, antigen.displayOrder]);
+    insertAntigen.run([antigen.id, antigen.label, antigen.system]);
   }
   insertAntigen.free();
 
   const insertAntibody = db.prepare(
-    "INSERT INTO antibodies (id, label, antigen_id, dosage_sensitive, display_order) VALUES (?, ?, ?, ?, ?)",
+    "INSERT INTO antibodies (id, label, antigen_id, dosage_sensitive) VALUES (?, ?, ?, ?)",
   );
   for (const antibody of antibodies) {
-    insertAntibody.run([
-      antibody.id,
-      antibody.label,
-      antibody.antigenId,
-      dbValue(antibody.dosageSensitive),
-      antibody.displayOrder,
-    ]);
+    insertAntibody.run([antibody.id, antibody.label, antibody.antigenId, dbValue(antibody.dosageSensitive)]);
   }
   insertAntibody.free();
 
@@ -54,7 +49,6 @@ const main = async () => {
   const insertReaction = db.prepare(
     "INSERT INTO case_reactions (practice_case_id, donor_cell_id, reaction_value) VALUES (?, ?, ?)",
   );
-  const insertAnswer = db.prepare("INSERT INTO case_answers (practice_case_id, antibody_id) VALUES (?, ?)");
 
   for (const practiceCase of practiceCases) {
     insertCase.run([practiceCase.id, practiceCase.title, practiceCase.summary]);
@@ -62,19 +56,16 @@ const main = async () => {
     for (const cell of practiceCase.cells) {
       insertCell.run([cell.id, practiceCase.id, cell.label, dbValue(Boolean(cell.isAutoControl))]);
       insertReaction.run([practiceCase.id, cell.id, practiceCase.reactions[cell.id]]);
+      const zygosity = inferCellZygosity(cell.antigens);
 
       for (const antigen of antigens) {
         insertCellAntigen.run([
           cell.id,
           antigen.id,
           cell.antigens[antigen.id],
-          cell.zygosity[antigen.id],
+          zygosity[antigen.id],
         ]);
       }
-    }
-
-    for (const antibodyId of practiceCase.targetAntibodies) {
-      insertAnswer.run([practiceCase.id, antibodyId]);
     }
   }
 
@@ -82,7 +73,6 @@ const main = async () => {
   insertCell.free();
   insertCellAntigen.free();
   insertReaction.free();
-  insertAnswer.free();
 
   const output = db.export();
   db.close();
