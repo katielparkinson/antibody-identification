@@ -6,7 +6,11 @@ export type ReactionValue = "0" | "w+" | "1+" | "2+" | "3+" | "4+" | "mf";
 
 export type RuleOutMark = "none" | "heterozygous" | "homozygous";
 
+export type ProofMark = "none" | "positive" | "negative";
+
 export type AntibodyStatus = "unmarked" | "partial" | "ruled-out";
+
+export type AntibodyProofStatus = "unproven" | "proven";
 
 export type Antigen = {
   id: string;
@@ -33,6 +37,7 @@ export type PracticeCase = {
   id: string;
   title: string;
   summary: string;
+  targetAntibodyId: string;
   cells: DonorCell[];
   reactions: Record<string, ReactionValue>;
 };
@@ -42,6 +47,7 @@ export type UserMarks = Record<string, Record<string, RuleOutMark>>;
 export type AntibodyEvaluation = {
   antibodyId: string;
   status: AntibodyStatus;
+  proofStatus: AntibodyProofStatus;
   heterozygousRuleOuts: string[];
   homozygousRuleOuts: string[];
   explanation: string;

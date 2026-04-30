@@ -39,7 +39,9 @@ const main = async () => {
   }
   insertAntibody.free();
 
-  const insertCase = db.prepare("INSERT INTO practice_cases (id, title, summary) VALUES (?, ?, ?)");
+  const insertCase = db.prepare(
+    "INSERT INTO practice_cases (id, title, summary, target_antibody_id) VALUES (?, ?, ?, ?)",
+  );
   const insertCell = db.prepare(
     "INSERT INTO donor_cells (id, practice_case_id, label, is_auto_control) VALUES (?, ?, ?, ?)",
   );
@@ -51,7 +53,12 @@ const main = async () => {
   );
 
   for (const practiceCase of practiceCases) {
-    insertCase.run([practiceCase.id, practiceCase.title, practiceCase.summary]);
+    insertCase.run([
+      practiceCase.id,
+      practiceCase.title,
+      practiceCase.summary,
+      practiceCase.targetAntibodyId,
+    ]);
 
     for (const cell of practiceCase.cells) {
       insertCell.run([cell.id, practiceCase.id, cell.label, dbValue(Boolean(cell.isAutoControl))]);

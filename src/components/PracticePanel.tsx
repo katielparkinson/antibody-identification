@@ -1,17 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { antibodies, antigenGroups, antigens } from "@/lib/antibodyPolicy";
+import { antibodies, antibodyById, antigenGroups, antigens } from "@/lib/antibodyPolicy";
 import { practiceCases } from "@/lib/practiceCases";
 import {
   canMarkRuleOut,
   createAnswerKeyMarks,
+  createProofAnswerMarks,
   cycleRuleOutMark,
+  cycleProofMark,
   evaluatePanel,
+  evaluateProofSelection,
   isReactive,
   summarizeEvaluation,
 } from "@/lib/ruleOutEngine";
-import type { Antibody, DonorCell, RuleOutMark, UserMarks } from "@/lib/types";
+import type { Antibody, DonorCell, ProofMark, RuleOutMark, UserMarks } from "@/lib/types";
 import type { CSSProperties } from "react";
 
 const markLabels: Record<RuleOutMark, string> = {
@@ -20,10 +23,26 @@ const markLabels: Record<RuleOutMark, string> = {
   homozygous: "Hom",
 };
 
+const proofLabels: Record<ProofMark, string> = {
+  none: "",
+  positive: "+",
+  negative: "-",
+};
+
 const getMark = (marks: UserMarks, antibodyId: string, cellId: string): RuleOutMark =>
   marks[antibodyId]?.[cellId] ?? "none";
 
+const getProofMark = (
+  marks: Record<string, Record<string, ProofMark>>,
+  antibodyId: string,
+  cellId: string,
+): ProofMark => marks[antibodyId]?.[cellId] ?? "none";
+
 const antigenDisplay = (cell: DonorCell, antibody: Antibody) => {
+  if (cell.isAutoControl) {
+    return "";
+  }
+
   const antigen = cell.antigens[antibody.antigenId];
   if (antigen === "unknown") {
     return "?";
@@ -46,23 +65,48 @@ const isFamilyDivider = (antigenId: string) => familyDividerAntigenIds.has(antig
 
 export function PracticePanel() {
   const [caseId, setCaseId] = useState(practiceCases[0].id);
-  const [marks, setMarks] = useState<UserMarks>({});
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [ruleOutMarksByCase, setRuleOutMarksByCase] = useState<Record<string, UserMarks>>({});
+  const [proofMarksByCase, setProofMarksByCase] = useState<
+    Record<string, Record<string, Record<string, ProofMark>>>
+  >({});
+  const [selectedAnswerByCase, setSelectedAnswerByCase] = useState<Record<string, string>>({});
+  const [showAnswerByCase, setShowAnswerByCase] = useState<Record<string, boolean>>({});
 
   const caseData = practiceCases.find((item) => item.id === caseId) ?? practiceCases[0];
-  const evaluations = useMemo(() => evaluatePanel(caseData, marks), [caseData, marks]);
-  const summary = useMemo(() => summarizeEvaluation(caseData, marks), [caseData, marks]);
-  const answerMarks = useMemo(() => createAnswerKeyMarks(caseData), [caseData]);
+  const marks = useMemo(() => ruleOutMarksByCase[caseId] ?? {}, [ruleOutMarksByCase, caseId]);
+  const selectedAnswerId = selectedAnswerByCase[caseId] ?? "";
+  const selectedAnswer = selectedAnswerId ? antibodyById.get(selectedAnswerId) : undefined;
+  const targetAntibody = antibodyById.get(caseData.targetAntibodyId);
+  const caseProofMarks = useMemo(
+    () => proofMarksByCase[caseId] ?? {},
+    [proofMarksByCase, caseId],
+  );
+  const proofMarks = useMemo(
+    () => (selectedAnswerId ? caseProofMarks[selectedAnswerId] ?? {} : {}),
+    [caseProofMarks, selectedAnswerId],
+  );
+  const showAnswer = showAnswerByCase[caseId] ?? false;
+  const answerMarks = createAnswerKeyMarks(caseData);
+  const displayedRuleOutMarks = showAnswer ? answerMarks : marks;
+  const displayedProofMarks =
+    showAnswer && targetAntibody ? createProofAnswerMarks(caseData, targetAntibody) : proofMarks;
+  const evaluations = useMemo(() => evaluatePanel(caseData, displayedRuleOutMarks), [caseData, displayedRuleOutMarks]);
+  const summary = useMemo(() => summarizeEvaluation(caseData, displayedRuleOutMarks), [caseData, displayedRuleOutMarks]);
+  const proofEvaluation = useMemo(() => {
+    if (!selectedAnswer) {
+      return undefined;
+    }
+
+    return evaluateProofSelection(caseData, selectedAnswer, proofMarks);
+  }, [caseData, proofMarks, selectedAnswer]);
   const panelTableStyle: PanelTableStyle = {
     "--antibody-count": antibodies.length,
     "--status-col-width": "92px",
-    minWidth: `${72 + 80 + antibodies.length * 38}px`,
+    minWidth: `${70 + 70 + antibodies.length * 38}px`,
   };
 
   const changeCase = (nextCaseId: string) => {
     setCaseId(nextCaseId);
-    setMarks({});
-    setShowAnswer(false);
   };
 
   const toggleMark = (antibody: Antibody, cell: DonorCell) => {
@@ -70,10 +114,11 @@ export function PracticePanel() {
       return;
     }
 
-    setMarks((currentMarks) => {
-      const current = getMark(currentMarks, antibody.id, cell.id);
+    setRuleOutMarksByCase((currentMarks) => {
+      const caseMarks = currentMarks[caseId] ?? {};
+      const current = getMark(caseMarks, antibody.id, cell.id);
       const next = cycleRuleOutMark(current);
-      const antibodyMarks = { ...(currentMarks[antibody.id] ?? {}) };
+      const antibodyMarks = { ...(caseMarks[antibody.id] ?? {}) };
 
       if (next === "none") {
         delete antibodyMarks[cell.id];
@@ -83,14 +128,69 @@ export function PracticePanel() {
 
       return {
         ...currentMarks,
-        [antibody.id]: antibodyMarks,
+        [caseId]: {
+          ...caseMarks,
+          [antibody.id]: antibodyMarks,
+        },
       };
     });
   };
 
-  const markAnswerKey = () => {
-    setMarks(answerMarks);
-    setShowAnswer(true);
+  const toggleProofMark = (cell: DonorCell) => {
+    if (!selectedAnswer || cell.isAutoControl || showAnswer) {
+      return;
+    }
+
+    setProofMarksByCase((currentMarks) => {
+      const caseMarks = currentMarks[caseId] ?? {};
+      const antibodyMarks = { ...(caseMarks[selectedAnswer.id] ?? {}) };
+      const current = getProofMark(caseMarks, selectedAnswer.id, cell.id);
+      const next = cycleProofMark(current);
+
+      if (next === "none") {
+        delete antibodyMarks[cell.id];
+      } else {
+        antibodyMarks[cell.id] = next;
+      }
+
+      return {
+        ...currentMarks,
+        [caseId]: {
+          ...caseMarks,
+          [selectedAnswer.id]: antibodyMarks,
+        },
+      };
+    });
+  };
+
+  const clearCurrentCase = () => {
+    setRuleOutMarksByCase((currentMarks) => {
+      const nextMarks = { ...currentMarks };
+      delete nextMarks[caseId];
+      return nextMarks;
+    });
+    setProofMarksByCase((currentMarks) => {
+      const nextMarks = { ...currentMarks };
+      delete nextMarks[caseId];
+      return nextMarks;
+    });
+    setSelectedAnswerByCase((currentAnswers) => {
+      const nextAnswers = { ...currentAnswers };
+      delete nextAnswers[caseId];
+      return nextAnswers;
+    });
+    setShowAnswerByCase((currentState) => {
+      const nextState = { ...currentState };
+      delete nextState[caseId];
+      return nextState;
+    });
+  };
+
+  const revealAnswer = () => {
+    setShowAnswerByCase((currentState) => ({
+      ...currentState,
+      [caseId]: true,
+    }));
   };
 
   return (
@@ -107,10 +207,10 @@ export function PracticePanel() {
           </select>
         </div>
         <div className="actions">
-          <button className="button secondary" type="button" onClick={() => setMarks({})}>
+          <button className="button secondary" type="button" onClick={clearCurrentCase}>
             Clear marks
           </button>
-          <button className="button" type="button" onClick={markAnswerKey}>
+          <button className="button" type="button" onClick={revealAnswer}>
             Reveal answer
           </button>
         </div>
@@ -121,7 +221,27 @@ export function PracticePanel() {
         you are ready to check the answer.
       </p>
 
-      <div className="status-row" aria-label="Current rule-out summary">
+      <div className="status-row" aria-label="Current rule-out summary and final answer">
+        <div className="field status-field">
+          <label htmlFor={`final-answer-${caseId}`}>Final answer</label>
+          <select
+            id={`final-answer-${caseId}`}
+            value={selectedAnswerId}
+            onChange={(event) =>
+              setSelectedAnswerByCase((currentAnswers) => ({
+                ...currentAnswers,
+                [caseId]: event.target.value,
+              }))
+            }
+          >
+            <option value="">Choose antibody</option>
+            {antibodies.map((antibody) => (
+              <option key={antibody.id} value={antibody.id}>
+                {antibody.label}
+              </option>
+            ))}
+          </select>
+        </div>
         <span className="pill">
           Ruled out: <strong>{summary.ruledOut}</strong>
         </span>
@@ -172,9 +292,38 @@ export function PracticePanel() {
           <tbody>
             {caseData.cells.map((cell) => {
               const reaction = caseData.reactions[cell.id];
+              const proofMark = displayedProofMarks[cell.id] ?? "none";
               return (
                 <tr key={cell.id}>
-                  <td className="sticky-col">{cell.label}</td>
+                  <td className="sticky-col">
+                    <button
+                      aria-label={
+                        cell.isAutoControl
+                          ? `${cell.label} control`
+                          : selectedAnswer
+                            ? `${cell.label} proof mark ${proofLabels[proofMark]} for ${selectedAnswer.label}`
+                            : `${cell.label} proof mark`
+                      }
+                      className={["proof-cell", proofMark !== "none" ? `proof-cell-${proofMark}` : ""].join(" ")}
+                      disabled={cell.isAutoControl || !selectedAnswer || showAnswer}
+                      title={
+                        cell.isAutoControl
+                          ? "Autocontrol is not used for proof marking."
+                          : !selectedAnswer
+                            ? "Choose a final antibody answer first."
+                            : showAnswer
+                              ? "Answer is revealed."
+                              : "Click to cycle proof mark."
+                      }
+                      type="button"
+                      onClick={() => toggleProofMark(cell)}
+                    >
+                      <span className="proof-cell-number">{cell.label}</span>
+                      <span className={`proof-cell-mark proof-cell-mark-${proofMark}`}>
+                        {proofLabels[proofMark]}
+                      </span>
+                    </button>
+                  </td>
                   <td
                     className={[
                       "sticky-col",
@@ -185,7 +334,7 @@ export function PracticePanel() {
                     {reaction}
                   </td>
                   {antibodies.map((antibody) => {
-                    const mark = getMark(marks, antibody.id, cell.id);
+                    const mark = getMark(displayedRuleOutMarks, antibody.id, cell.id);
                     const disabled = !canMarkRuleOut(cell, antibody);
                     return (
                       <td
@@ -245,7 +394,8 @@ export function PracticePanel() {
           <h2>How To Use The Panel</h2>
           <p>
             Click antigen-positive cells to cycle blank, heterozygous, and homozygous
-            marks. Reactive cells stay clickable in practice mode so you can test your
+            marks. Click the cell number to cycle proof marks while a final antibody is
+            selected. Reactive cells stay clickable in practice mode so you can test your
             own judgment. Dosage-sensitive antibodies need homozygous evidence for a
             complete rule-out in this training policy.
           </p>
@@ -255,9 +405,25 @@ export function PracticePanel() {
           {showAnswer ? (
             <>
               <p className="answer-summary">{caseData.summary}</p>
-              <p>
-                Your current marks now show the full answer key for this synthetic case.
-              </p>
+              {selectedAnswer ? (
+                <>
+                  <p>
+                    Selected answer: <strong>{selectedAnswer.label}</strong>
+                  </p>
+                  <p>
+                    {selectedAnswer.id === caseData.targetAntibodyId
+                      ? "Your selected answer matches the target antibody."
+                      : `The target antibody is ${targetAntibody?.label ?? "unknown"}.`}
+                  </p>
+                  <p>
+                    Proof status:{" "}
+                    <strong>{proofEvaluation?.status === "proven" ? "Proven" : "Unproven"}</strong>
+                  </p>
+                </>
+              ) : (
+                <p>Select a final answer to check your proof marks against the case.</p>
+              )}
+              <p>The proof markers now show the correct support pattern for the case.</p>
             </>
           ) : (
             <p>

@@ -14,7 +14,8 @@ CREATE TABLE antibodies (
 CREATE TABLE practice_cases (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
-  summary TEXT NOT NULL
+  summary TEXT NOT NULL,
+  target_antibody_id TEXT NOT NULL REFERENCES antibodies(id)
 );
 
 CREATE TABLE donor_cells (

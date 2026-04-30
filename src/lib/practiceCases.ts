@@ -44,8 +44,8 @@ const autoControl: DonorCell = {
   id: "auto",
   label: "Auto",
   isAutoControl: true,
-  antigens: { ...baseNegative },
-  zygosity: inferCellZygosity(baseNegative),
+  antigens: {},
+  zygosity: {},
 };
 
 export const practiceCases: PracticeCase[] = [
@@ -53,6 +53,7 @@ export const practiceCases: PracticeCase[] = [
     id: "case-anti-e",
     title: "Case 1",
     summary: "Synthetic panel with IAT reactivity consistent with anti-E.",
+    targetAntibodyId: "anti-E",
     cells: [
       cell(
         "1",
@@ -260,6 +261,7 @@ export const practiceCases: PracticeCase[] = [
     id: "case-anti-fya",
     title: "Case 2",
     summary: "Synthetic panel with IAT reactivity consistent with anti-Fya.",
+    targetAntibodyId: "anti-Fya",
     cells: [
       cell(
         "1",
@@ -470,6 +472,7 @@ export const practiceCases: PracticeCase[] = [
     id: "case-anti-d",
     title: "Case 3",
     summary: "Synthetic panel with IAT reactivity consistent with anti-D.",
+    targetAntibodyId: "anti-D",
     cells: [
       cell(
         "1",
@@ -677,6 +680,7 @@ export const practiceCases: PracticeCase[] = [
     id: "case-anti-jkb",
     title: "Case 4",
     summary: "Synthetic panel with IAT reactivity consistent with anti-Jkb.",
+    targetAntibodyId: "anti-Jkb",
     cells: [
       cell(
         "1",

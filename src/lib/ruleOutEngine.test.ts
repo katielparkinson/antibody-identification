@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { antibodies, antibodyById, antigenGroups, antigens } from "./antibodyPolicy";
 import { practiceCases } from "./practiceCases";
 import {
+  calculateRuleInStatus,
+  calculateRuleOutStatus,
   createAnswerKeyMarks,
   cycleRuleOutMark,
   evaluateAntibody,
@@ -26,10 +28,31 @@ const makeCell = (
   },
 });
 
-const makeCase = (cells: DonorCell[], reactions: Record<string, ReactionValue>): PracticeCase => ({
+const makeTypedCell = (
+  id: string,
+  antigenId: string,
+  antigenValue: "positive" | "negative",
+  zygosity: "homozygous" | "heterozygous" | "not_applicable",
+): DonorCell => ({
+  id,
+  label: id,
+  antigens: {
+    [antigenId]: antigenValue,
+  },
+  zygosity: {
+    [antigenId]: zygosity,
+  },
+});
+
+const makeCase = (
+  cells: DonorCell[],
+  reactions: Record<string, ReactionValue>,
+  targetAntibodyId = "anti-E",
+): PracticeCase => ({
   id: "test-case",
   title: "Test Case",
   summary: "Synthetic test case",
+  targetAntibodyId,
   cells,
   reactions,
 });
@@ -121,7 +144,20 @@ describe("rule-out engine", () => {
     });
   });
 
-  it("treats Rh exceptions like D as non-dosage-sensitive", () => {
+  it("leaves the autocontrol without antigen typing", () => {
+    expect(practiceCases[0].cells.find((cell) => cell.id === "auto")?.antigens).toEqual({});
+    expect(practiceCases[0].cells.find((cell) => cell.id === "auto")?.zygosity).toEqual({});
+  });
+
+  it("keeps autocontrol antigen display blank by omitting antigen typings", () => {
+    const autoCell = practiceCases[0].cells.find((cell) => cell.id === "auto");
+
+    expect(autoCell).toBeDefined();
+    expect(autoCell?.isAutoControl).toBe(true);
+    expect(Object.keys(autoCell?.antigens ?? {})).toHaveLength(0);
+  });
+
+  it("counts user-entered marks on non-dosage-sensitive antibodies as entered", () => {
     const antiD = antibodyById.get("anti-D")!;
     const caseData = makeCase([makeCell("cell-1", "D", "heterozygous")], { "cell-1": "0" });
 
@@ -131,8 +167,10 @@ describe("rule-out engine", () => {
       },
     });
 
-    expect(evaluation.status).toBe("ruled-out");
+    expect(evaluation.status).toBe("partial");
     expect(evaluation.heterozygousRuleOuts).toEqual(["cell-1"]);
+    expect(evaluation.homozygousRuleOuts).toEqual([]);
+    expect(evaluation.proofStatus).toBe("unproven");
   });
 
   it("allows reactive cells to be clicked without treating them as answer-key suggestions", () => {
@@ -165,35 +203,63 @@ describe("rule-out engine", () => {
     expect(evaluation.homozygousRuleOuts).toEqual([]);
   });
 
-  it("marks dosage-sensitive antibodies ruled out only when the marked cell is homozygous and nonreactive", () => {
+  it("rules out dosage-sensitive antibodies after two homozygous rule outs", () => {
     const antiE = antibodyById.get("anti-E")!;
     const caseData = makeCase(
       [
         makeCell("cell-1", "E", "homozygous"),
-        makeCell("cell-2", "E", "heterozygous"),
-        makeCell("cell-3", "E", "homozygous"),
+        makeCell("cell-2", "E", "homozygous"),
+        makeCell("cell-3", "E", "heterozygous"),
       ],
       {
         "cell-1": "0",
         "cell-2": "0",
-        "cell-3": "2+",
+        "cell-3": "0",
       },
     );
 
     const evaluation = evaluateAntibody(antiE, caseData, {
       "anti-E": {
         "cell-1": "homozygous",
+        "cell-2": "homozygous",
+        "cell-3": "heterozygous",
+      },
+    });
+
+    expect(evaluation.status).toBe("ruled-out");
+    expect(evaluation.homozygousRuleOuts).toEqual(["cell-1", "cell-2"]);
+    expect(evaluation.heterozygousRuleOuts).toEqual(["cell-3"]);
+  });
+
+  it("rules out when there are two heterozygous rule outs and one homozygous rule out", () => {
+    const antiE = antibodyById.get("anti-E")!;
+    const caseData = makeCase(
+      [
+        makeCell("cell-1", "E", "heterozygous"),
+        makeCell("cell-2", "E", "heterozygous"),
+        makeCell("cell-3", "E", "homozygous"),
+      ],
+      {
+        "cell-1": "0",
+        "cell-2": "0",
+        "cell-3": "0",
+      },
+    );
+
+    const evaluation = evaluateAntibody(antiE, caseData, {
+      "anti-E": {
+        "cell-1": "heterozygous",
         "cell-2": "heterozygous",
         "cell-3": "homozygous",
       },
     });
 
     expect(evaluation.status).toBe("ruled-out");
-    expect(evaluation.homozygousRuleOuts).toEqual(["cell-1"]);
-    expect(evaluation.heterozygousRuleOuts).toEqual(["cell-2"]);
+    expect(evaluation.heterozygousRuleOuts).toEqual(["cell-1", "cell-2"]);
+    expect(evaluation.homozygousRuleOuts).toEqual(["cell-3"]);
   });
 
-  it("treats non-dosage-sensitive antibodies as ruled out by any valid marked antigen-positive nonreactive cell", () => {
+  it("treats one user-entered mark on a non-dosage-sensitive antibody as partial", () => {
     const antiK = antibodyById.get("anti-K")!;
     const caseData = makeCase([makeCell("cell-1", "K", "heterozygous")], { "cell-1": "0" });
 
@@ -203,23 +269,33 @@ describe("rule-out engine", () => {
       },
     });
 
-    expect(evaluation.status).toBe("ruled-out");
+    expect(evaluation.status).toBe("partial");
     expect(evaluation.heterozygousRuleOuts).toEqual(["cell-1"]);
     expect(evaluation.homozygousRuleOuts).toEqual([]);
   });
 
-  it("ignores marks on reactive cells", () => {
+  it("counts the user's rule-out marks even when they do not match the cell zygosity or reactivity", () => {
     const antiE = antibodyById.get("anti-E")!;
-    const caseData = makeCase([makeCell("cell-1", "E", "homozygous")], { "cell-1": "2+" });
+    const caseData = makeCase(
+      [
+        makeCell("cell-1", "E", "heterozygous"),
+        makeTypedCell("cell-2", "E", "negative", "not_applicable"),
+      ],
+      {
+        "cell-1": "2+",
+        "cell-2": "0",
+      },
+    );
 
     const evaluation = evaluateAntibody(antiE, caseData, {
       "anti-E": {
         "cell-1": "homozygous",
+        "cell-2": "homozygous",
       },
     });
 
-    expect(evaluation.status).toBe("unmarked");
-    expect(evaluation.homozygousRuleOuts).toEqual([]);
+    expect(evaluation.status).toBe("ruled-out");
+    expect(evaluation.homozygousRuleOuts).toEqual(["cell-1", "cell-2"]);
   });
 
   it("starts all antibodies as unmarked before user rule-outs", () => {
@@ -227,6 +303,38 @@ describe("rule-out engine", () => {
 
     expect(summary.ruledOut).toBe(0);
     expect(summary.partial).toBe(0);
+  });
+
+  it("calculates rule-out status from the threshold rules", () => {
+    expect(calculateRuleOutStatus(0, 0)).toBe("unmarked");
+    expect(calculateRuleOutStatus(1, 0)).toBe("partial");
+    expect(calculateRuleOutStatus(0, 2)).toBe("ruled-out");
+    expect(calculateRuleOutStatus(2, 1)).toBe("ruled-out");
+  });
+
+  it("proves an antibody only when it has three positive and three negative supports", () => {
+    const antiE = antibodyById.get("anti-E")!;
+    const caseData = makeCase(
+      [
+        makeTypedCell("cell-1", "E", "positive", "homozygous"),
+        makeTypedCell("cell-2", "E", "positive", "homozygous"),
+        makeTypedCell("cell-3", "E", "positive", "homozygous"),
+        makeTypedCell("cell-4", "E", "negative", "not_applicable"),
+        makeTypedCell("cell-5", "E", "negative", "not_applicable"),
+        makeTypedCell("cell-6", "E", "negative", "not_applicable"),
+      ],
+      {
+        "cell-1": "2+",
+        "cell-2": "1+",
+        "cell-3": "w+",
+        "cell-4": "0",
+        "cell-5": "0",
+        "cell-6": "0",
+      },
+    );
+
+    expect(calculateRuleInStatus(antiE, caseData)).toBe("proven");
+    expect(evaluateAntibody(antiE, caseData, {}).proofStatus).toBe("proven");
   });
 
   it("includes the added minor antigens in the panel library", () => {
