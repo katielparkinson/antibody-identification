@@ -9,6 +9,7 @@ describe("quick start page", () => {
     expect(screen.getByRole("heading", { name: /learn only what you need/i })).toBeVisible();
     expect(screen.getByRole("heading", { name: /what antibody identification is trying to answer/i })).toBeVisible();
     expect(screen.getByRole("heading", { name: /the only notation the practice page uses/i })).toBeVisible();
+    expect(screen.getByText(/37°c/i)).toBeVisible();
     expect(screen.getByRole("link", { name: /open full guide/i })).toBeVisible();
   });
 });

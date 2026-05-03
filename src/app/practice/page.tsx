@@ -16,6 +16,7 @@ export default function PracticePage() {
       <section className="section">
         <div className="stacked-cards">
           <article className="card">
+            <p className="card-label">Teaching note</p>
             <p>
               This exercise follows common educational teaching rules. Real blood bank
               procedures and interpretation thresholds vary by lab policy and case context.
@@ -49,7 +50,7 @@ export default function PracticePage() {
                 Rule out means a nonreactive antigen-positive cell makes that
                 antibody less likely. To rule out an antibody, you need either
                 2 homozygous rule-outs or 2 heterozygous rule-outs plus 1
-                homozygous rule-out.
+                homozygous rule-out, within this app&apos;s teaching model.
               </li>
               <li>
                 Use the footer status row as your running judgment:

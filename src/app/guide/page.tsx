@@ -26,7 +26,7 @@ const additionalTopics = [
   },
   {
     title: "Alloantibody vs autoantibody",
-    body: "A negative autocontrol supports alloantibody. A positive autocontrol or DAT raises concern for autoantibody, recent transfusion, or another mixed picture.",
+    body: "A negative autocontrol supports an alloantibody pattern, but does not prove it by itself. A positive autocontrol or DAT raises concern for autoantibody, recent transfusion, or another mixed picture.",
   },
   {
     title: "Clinical significance",
@@ -111,7 +111,7 @@ export default function GuidePage() {
             Clinically significant antibodies are the ones that can shorten
             red cell survival or cause hemolytic disease of the fetus and
             newborn. In many routine workups, that means looking for
-            antibodies that react at 37 C and/or AHG.
+            antibodies that react at 37°C and/or AHG.
           </p>
         </div>
         <div className="split-layout">
@@ -191,7 +191,7 @@ export default function GuidePage() {
             <ul className="compact-list">
               <li>Kell antibodies are often strong and clinically important, but serology can vary.</li>
               <li>Lewis antibodies are often colder and often less significant.</li>
-              <li>Rare Lewis antibodies can still matter if they react at 37 C.</li>
+              <li>Rare Lewis antibodies can still matter if they react at 37°C.</li>
             </ul>
           </article>
         </div>
@@ -202,10 +202,10 @@ export default function GuidePage() {
           <p className="eyebrow">Rule-out strategy</p>
           <h2>How nonreactive cells narrow the list.</h2>
           <p>
-            Rule-out means using antigen-negative results to exclude antibodies
-            you do not think are responsible for the pattern. If dosage is
-            possible, homozygous cells matter because they are better at showing
-            weak reactions.
+            Rule-out means using nonreactive cells that are antigen-positive for
+            the candidate antibody to exclude that antibody from consideration.
+            If dosage is possible, homozygous cells matter because they are
+            better at showing weak reactions.
           </p>
         </div>
         <div className="split-layout">
@@ -262,7 +262,7 @@ export default function GuidePage() {
             <p>
               The autocontrol compares the patient&apos;s serum with the
               patient&apos;s own red cells. A negative result supports an
-              alloantibody pattern.
+              alloantibody pattern, but it does not prove it by itself.
             </p>
           </article>
           <article className="card">

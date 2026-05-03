@@ -1,5 +1,5 @@
 export const quickFacts = [
-  "Clinically significant antibodies usually react at 37 C and/or AHG.",
+  "Clinically significant antibodies usually react at 37°C and/or AHG.",
   "Nonreactive cells are used to rule out likely antibody specificities.",
   "Dosage means homozygous cells often react more strongly than heterozygous cells.",
   "Autocontrol and DAT help separate alloantibodies from autoantibodies or mixed pictures.",
@@ -12,7 +12,7 @@ export const phaseRows = [
     take: "If reactivity is only here, think colder and usually less clinically significant.",
   },
   {
-    phase: "37 C",
+    phase: "37°C",
     meaning: "Suggests a warmer thermal range and raises concern for clinically significant IgG.",
     take: "This phase matters when you are deciding whether an antibody could cause harm.",
   },
@@ -80,7 +80,7 @@ export const enzymeEffects = [
   {
     effect: "Unaffected",
     examples: "Kell",
-    meaning: "Kell antigens are generally not destroyed by ficin in this teaching model.",
+    meaning: "Kell antigens are generally resistant to common enzyme treatment.",
   },
   {
     effect: "Why it matters",
