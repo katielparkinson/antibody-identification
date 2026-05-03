@@ -17,20 +17,20 @@ export const metadata: Metadata = {
 
 const additionalTopics = [
   {
-    title: "Rule-out strategy",
-    body: "Use nonreactive cells to eliminate antibodies that do not fit the pattern. Homozygous cells are especially important when dosage is possible.",
+    title: "Red cell antigens and antibodies",
+    body: "A panel works by matching patient serum or plasma against reagent red cells with known antigen profiles. The question is which antibody explains the reaction pattern.",
   },
   {
-    title: "Rule-in strategy",
-    body: "Look for a pattern with enough positive and negative cells to support the antibody specificity with confidence.",
+    title: "IAT vs DAT",
+    body: "The indirect antiglobulin test detects free antibody in serum or plasma. The direct antiglobulin test detects IgG or complement already coating red cells in vivo.",
   },
   {
-    title: "Autocontrol and DAT",
-    body: "A negative autocontrol supports alloantibody. A positive autocontrol or DAT raises concern for autoantibody, transfused sensitized cells, or immune coating in vivo.",
+    title: "Alloantibody vs autoantibody",
+    body: "A negative autocontrol supports alloantibody. A positive autocontrol or DAT raises concern for autoantibody, recent transfusion, or another mixed picture.",
   },
   {
-    title: "Clinical context",
-    body: "Transfusion history, pregnancy history, and hemolysis can explain why a previously negative patient now has a positive workup.",
+    title: "Clinical significance",
+    body: "Rh, Kell, Duffy, and Kidd are commonly cited clinically significant systems because they can shorten red cell survival or cause HDFN.",
   },
 ];
 
@@ -42,10 +42,10 @@ export default function GuidePage() {
           <p className="eyebrow">Full guide</p>
           <h1>Antibody identification from basics to complete panel strategy.</h1>
           <p className="lede">
-            This page is the deeper reference. It covers the immunology,
-            clinically significant systems, phases, dosage, enzyme effects,
-            autocontrol and DAT interpretation, and the practical steps used
-            to work through a blood bank antibody identification case.
+            This page is the deeper reference. It covers the blood bank basics,
+            antibody classes, clinically significant systems, phases, dosage,
+            enzyme effects, autocontrol and DAT interpretation, and the practical
+            steps used to work through a blood bank antibody identification case.
           </p>
           <div className="actions">
             <Link className="button" href="/practice">
@@ -85,7 +85,7 @@ export default function GuidePage() {
       <section className="section" id="basics">
         <div className="section-heading">
           <p className="eyebrow">Core topics</p>
-          <h2>What a beginner needs to know before opening a panel.</h2>
+          <h2>Blood bank basics before opening a panel.</h2>
           <p>
             Antibody identification compares a patient&apos;s serum or plasma
             with reagent red cells that have known antigen profiles. The goal
@@ -110,18 +110,18 @@ export default function GuidePage() {
           <p>
             Clinically significant antibodies are the ones that can shorten
             red cell survival or cause hemolytic disease of the fetus and
-            newborn. In routine workups, that usually means looking for
+            newborn. In many routine workups, that means looking for
             antibodies that react at 37 C and/or AHG.
           </p>
         </div>
         <div className="split-layout">
           <article className="card">
             <h3>Usually important</h3>
-            <p>Rh, Kell, Duffy, and Kidd are the classic high-yield systems.</p>
+            <p>Rh, Kell, Duffy, and Kidd are common high-yield systems.</p>
           </article>
           <article className="card">
             <h3>Usually less important</h3>
-            <p>Lewis antibodies are often colder and less clinically significant, though exceptions exist.</p>
+            <p>Lewis antibodies are often colder and less clinically significant, though some exceptions are clinically important.</p>
           </article>
         </div>
       </section>
@@ -181,16 +181,16 @@ export default function GuidePage() {
           <article className="card">
             <h3>Rh, Duffy, Kidd</h3>
             <ul className="compact-list">
-              <li>Rh antibodies are usually warm and often show dosage.</li>
+              <li>Rh antibodies are often warm and may show dosage.</li>
               <li>Duffy antibodies are dosage-sensitive and enzyme sensitive.</li>
-              <li>Kidd antibodies can be weak, variable, and delayed.</li>
+              <li>Kidd antibodies can be weak, variable, and delayed or evanescent.</li>
             </ul>
           </article>
           <article className="card">
             <h3>Kell and Lewis</h3>
             <ul className="compact-list">
-              <li>Kell antibodies are often strong and clinically important.</li>
-              <li>Lewis antibodies are often colder and usually less significant.</li>
+              <li>Kell antibodies are often strong and clinically important, but serology can vary.</li>
+              <li>Lewis antibodies are often colder and often less significant.</li>
               <li>Rare Lewis antibodies can still matter if they react at 37 C.</li>
             </ul>
           </article>
@@ -236,7 +236,7 @@ export default function GuidePage() {
           <article className="card">
             <h3>Rule of 3</h3>
             <p>
-              A common teaching standard is to find at least 3 positive cells
+              One common teaching standard is to find at least 3 positive cells
               and 3 negative cells that support the antibody pattern. That
               increases confidence that the fit is real.
             </p>

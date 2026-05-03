@@ -75,12 +75,12 @@ export const enzymeEffects = [
   {
     effect: "Variable",
     examples: "S and s",
-    meaning: "These can be affected inconsistently, so enzyme results must be interpreted carefully.",
+    meaning: "These can be affected inconsistently, so enzyme results should be interpreted carefully.",
   },
   {
     effect: "Unaffected",
     examples: "Kell",
-    meaning: "Kell antigens are classically not destroyed by ficin in this teaching model.",
+    meaning: "Kell antigens are generally not destroyed by ficin in this teaching model.",
   },
   {
     effect: "Why it matters",
@@ -124,8 +124,8 @@ export const references = [
     href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC4140072/",
   },
   {
-    label: "Lewis-A Antibody in Clinical Practice: A Case Report",
-    href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11319887/",
+    label: "Serological characteristics of Lewis antibodies and their clinical significance - A case series",
+    href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10244237/",
   },
 ];
 

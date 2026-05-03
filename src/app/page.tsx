@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { glossary, phaseRows, quickFacts, systems } from "@/lib/learningContent";
+import { quickFacts } from "@/lib/learningContent";
 
 export const metadata: Metadata = {
   title: "Antibody Identification | Quick Start",
@@ -13,12 +13,11 @@ export default function Home() {
       <section className="hero guide-hero">
         <div className="hero-copy guide-hero-copy">
           <p className="eyebrow">Quick start</p>
-          <h1>Learn the essentials, then move into the full guide or practice.</h1>
+          <h1>Learn only what you need, then move into practice.</h1>
           <p className="lede">
-            If you are new to blood banking, this is the fastest path to
-            understanding antibody identification. Read the essentials here,
-            open the full guide when you want depth, and then use the practice
-            page to apply the workflow to panels.
+            This page gives the minimum setup needed to work the practice panel.
+            Use the full guide when you want the blood bank background, antibody
+            concepts, and deeper explanations of the patterns you will see.
           </p>
           <div className="actions">
             <Link className="button" href="/guide">
@@ -42,9 +41,8 @@ export default function Home() {
 
       <nav className="guide-nav" aria-label="Learn page shortcuts">
         <a href="#basics">Basics</a>
-        <a href="#systems">Big systems</a>
         <a href="#strategy">Workflow</a>
-        <a href="#glossary">Glossary</a>
+        <a href="#marks">Marks</a>
       </nav>
 
       <section className="section" id="basics">
@@ -54,70 +52,52 @@ export default function Home() {
           <p>
             The test is about matching patient serum or plasma against reagent
             red cells with known antigen profiles. The goal is to identify
-            which antibody or antibodies are present, whether they are likely
-            clinically significant, and what blood should be selected for
-            transfusion.
+            which antibody or antibodies are present so the panel can be
+            interpreted correctly.
           </p>
         </div>
         <div className="grid grid-4">
           <article className="card">
-            <h3>Antibody binding</h3>
+            <h3>Read the pattern first</h3>
             <p>
-              Antibodies bind antigens first. Visible agglutination appears
-              only when enough bound antibody bridges red cells into a lattice.
+              Start with the reactive cells, then look for the antibody pattern
+              that explains them best.
             </p>
           </article>
           <article className="card">
-            <h3>IgG vs IgM</h3>
+            <h3>Know the usual clues</h3>
             <p>
-              IgM often reacts colder and can fix complement strongly. IgG is
-              usually the warm, clinically important class that drives most ID workups.
+              Clinically significant antibodies usually react at 37 C and/or AHG,
+              and the autocontrol or DAT can help separate alloantibody from
+              autoantibody or mixed findings.
             </p>
           </article>
           <article className="card">
-            <h3>Phase matters</h3>
+            <h3>Use nonreactive cells</h3>
             <p>
-              Immediate spin, 37 C, and AHG tell you different things about the
-              temperature range and likely significance of the antibody.
+              Nonreactive antigen-positive cells help rule out unlikely
+              antibodies, and dosage-sensitive systems need homozygous cells
+              for stronger evidence.
             </p>
           </article>
           <article className="card">
-            <h3>Pattern matters</h3>
+            <h3>Match the panel</h3>
             <p>
-              A panel is a pattern-recognition exercise. The strongest clue is
-              not one cell, but how the whole pattern fits together.
+              The strongest clue is not one cell, but how the whole panel fits
+              together.
             </p>
           </article>
-        </div>
-      </section>
-
-      <section className="section" id="systems">
-        <div className="section-heading">
-          <p className="eyebrow">Big systems</p>
-          <h2>Start with the antibodies that matter most.</h2>
-        </div>
-        <div className="system-grid">
-          {systems.map((system) => (
-            <article className="card system-card" key={system.name}>
-              <div className="system-header">
-                <h3>{system.name}</h3>
-                <span className="system-badge">High yield</span>
-              </div>
-              <p>{system.summary}</p>
-              <p className="system-reason">{system.why}</p>
-            </article>
-          ))}
         </div>
       </section>
 
       <section className="section" id="strategy">
         <div className="section-heading">
           <p className="eyebrow">Workflow</p>
-          <h2>A simple order for reading a case.</h2>
+          <h2>A simple order for reading a practice case.</h2>
         </div>
         <div className="split-layout">
           <article className="card">
-            <h3>1. Check the setup</h3>
+            <h3>1. Start with the pattern</h3>
             <ul className="compact-list">
               <li>Look at the phase and strength of reactivity.</li>
               <li>Check the autocontrol and DAT.</li>
@@ -125,11 +105,11 @@ export default function Home() {
             </ul>
           </article>
           <article className="card">
-            <h3>2. Narrow the candidates</h3>
+            <h3>2. Rule out and confirm</h3>
             <ul className="compact-list">
               <li>Use nonreactive cells to rule out unlikely antibodies.</li>
               <li>Watch for dosage and homozygous expression.</li>
-              <li>Use enzyme behavior to support or weaken a hypothesis.</li>
+              <li>Use the reactive and nonreactive cells that fit best to support your final answer.</li>
             </ul>
           </article>
         </div>
@@ -142,10 +122,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="section">
+      <section className="section" id="marks">
         <div className="section-heading">
-          <p className="eyebrow">How to do the panel</p>
-          <h2>The procedure the practice page assumes you already know.</h2>
+          <p className="eyebrow">Marks</p>
+          <h2>The only notation the practice page uses.</h2>
         </div>
         <div className="split-layout">
           <article className="card">
@@ -195,56 +175,6 @@ export default function Home() {
               <strong>Out</strong> means ruled out.
             </p>
           </article>
-        </div>
-      </section>
-
-      <section className="section" id="glossary">
-        <div className="section-heading">
-          <p className="eyebrow">Glossary</p>
-          <h2>The minimum vocabulary you need to keep going.</h2>
-        </div>
-        <div className="table-wrap">
-          <table className="info-table">
-            <thead>
-              <tr>
-                <th>Term</th>
-                <th>Meaning</th>
-              </tr>
-            </thead>
-            <tbody>
-              {glossary.slice(0, 5).map((item) => (
-                <tr key={item.term}>
-                  <td>{item.term}</td>
-                  <td>{item.meaning}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section className="section">
-        <div className="section-heading">
-          <p className="eyebrow">Quick check</p>
-          <h2>Before you move on, remember these signals.</h2>
-        </div>
-        <div className="table-wrap">
-          <table className="info-table">
-            <thead>
-              <tr>
-                <th>Signal</th>
-                <th>What it usually suggests</th>
-              </tr>
-            </thead>
-            <tbody>
-              {phaseRows.map((row) => (
-                <tr key={row.phase}>
-                  <td>{row.phase}</td>
-                  <td>{row.take}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </section>
 

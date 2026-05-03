@@ -84,7 +84,7 @@ export default function PracticePage() {
               <li>Click antigen cells to cycle Het, Hom, and clear.</li>
               <li>Click the cell number to cycle proof marks between +, -, and clear.</li>
               <li>Click the footer status cell to cycle Partial, Out, Suspect, and clear.</li>
-              <li>Choose a final answer when you are ready.</li>
+              <li>Choose a final answer from the dropdown when you are ready.</li>
               <li>Reveal the answer to freeze your attempt and compare the result.</li>
             </ul>
           </article>
