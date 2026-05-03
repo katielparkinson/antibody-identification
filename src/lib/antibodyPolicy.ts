@@ -60,6 +60,6 @@ export const antigenGroups = [
   { label: "Kidd", antigenIds: ["Jka", "Jkb"] },
   { label: "Lewis", antigenIds: ["Lea", "Leb"] },
   { label: "P", antigenIds: ["P1"] },
-  { label: "MNS", antigenIds: ["M", "N", "S", "s"] },
+  { label: "MNSs", antigenIds: ["M", "N", "S", "s"] },
   { label: "Lutheran", antigenIds: ["Lua", "Lub"] },
 ];

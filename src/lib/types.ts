@@ -8,6 +8,8 @@ export type RuleOutMark = "none" | "heterozygous" | "homozygous";
 
 export type ProofMark = "none" | "positive" | "negative";
 
+export type ManualStatus = "none" | "suspect" | "partial" | "ruled-out";
+
 export type AntibodyStatus = "unmarked" | "partial" | "ruled-out";
 
 export type AntibodyProofStatus = "unproven" | "proven";

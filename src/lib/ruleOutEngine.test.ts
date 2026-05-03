@@ -360,7 +360,7 @@ describe("rule-out engine", () => {
       "Kidd",
       "Lewis",
       "P",
-      "MNS",
+      "MNSs",
       "Lutheran",
     ]);
 

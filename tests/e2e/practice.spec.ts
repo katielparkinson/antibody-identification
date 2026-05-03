@@ -7,5 +7,12 @@ test("practice panel loads the antibody identification workspace", async ({ page
     page.getByRole("heading", { name: /rule out antibodies from an 11-cell panel/i }),
   ).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
-  await expect(page.getByText(/still possible:/i)).toBeVisible();
+  await expect(page.getByRole("button", { name: /reveal answer/i })).toBeVisible();
+
+  await page.getByRole("button", { name: /reveal answer/i }).click();
+
+  await expect(page.getByRole("table")).toHaveCount(2);
+  await expect(page.getByRole("heading", { name: /your attempt/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /answer key/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /restart/i })).toBeVisible();
 });

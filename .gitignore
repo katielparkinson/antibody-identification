@@ -1,9 +1,9 @@
 .codex
 .project-plan.md
+.status-logic.md
 
 # Dependencies
 node_modules/
-package-lock.json
 
 # Next.js
 .next/

@@ -11,7 +11,7 @@ const concepts = [
   },
   {
     title: "Respect Dosage",
-    body: "Some antibodies react more strongly with double-dose antigen expression. For Rh, MNS, Duffy, and Kidd examples, a homozygous rule-out is stronger than a heterozygous rule-out.",
+    body: "Some antibodies react more strongly with double-dose antigen expression. For Rh, MNSs, Duffy, and Kidd examples, a homozygous rule-out is stronger than a heterozygous rule-out.",
   },
 ];
 
