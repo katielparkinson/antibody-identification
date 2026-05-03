@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Antibody Identification",
-  description: "Practice classic blood bank antibody identification panels.",
+  description: "Quick start and full guide for classic blood bank antibody identification panels.",
 };
 
 export default function RootLayout({
@@ -20,7 +20,8 @@ export default function RootLayout({
             Antibody Identification
           </Link>
           <nav aria-label="Primary navigation">
-            <Link href="/">Learn</Link>
+            <Link href="/">Quick Start</Link>
+            <Link href="/guide">Full Guide</Link>
             <Link href="/practice">Practice</Link>
           </nav>
         </header>

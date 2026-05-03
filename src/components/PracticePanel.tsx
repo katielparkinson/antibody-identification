@@ -70,8 +70,17 @@ const familyDividerAntigenIds = new Set(
 
 const isFamilyDivider = (antigenId: string) => familyDividerAntigenIds.has(antigenId);
 
-const getComparisonClass = (currentValue: string, expectedValue: string, compare: boolean) => {
+const getComparisonClass = (
+  currentValue: string,
+  expectedValue: string,
+  compare: boolean,
+  ignoreBlankCurrent = false,
+) => {
   if (!compare) {
+    return "";
+  }
+
+  if (ignoreBlankCurrent && currentValue === "none") {
     return "";
   }
 
@@ -84,26 +93,6 @@ const getComparisonClass = (currentValue: string, expectedValue: string, compare
   }
 
   return "comparison-mismatch";
-};
-
-const getStatusComparisonClass = (currentValue: string, expectedValue: string, compare: boolean) => {
-  if (!compare) {
-    return "";
-  }
-
-  if (currentValue === "none") {
-    return "";
-  }
-
-  return currentValue === expectedValue ? "comparison-match" : "comparison-mismatch";
-};
-
-const getFinalAnswerComparisonClass = (currentValue: string, expectedValue: string, compare: boolean) => {
-  if (!compare) {
-    return "";
-  }
-
-  return currentValue === expectedValue ? "comparison-match" : "comparison-mismatch";
 };
 
 const toStatusMap = (evaluations: ReturnType<typeof evaluatePanel>) =>
@@ -226,6 +215,7 @@ export function PracticePanel() {
   const renderTable = (mode: "user" | "answer") => {
     const isAnswerMode = mode === "answer";
     const interactive = !showAnswer && !isAnswerMode;
+    const compareActive = showAnswer && !isAnswerMode;
     const displayRuleOutMarks = isAnswerMode ? answerRuleOutMarks : ruleOutMarks;
     const compareRuleOutMarks = isAnswerMode ? ruleOutMarks : answerRuleOutMarks;
     const displayProofMarks = isAnswerMode ? answerProofMarks : userProofMarks;
@@ -251,7 +241,7 @@ export function PracticePanel() {
               ? "Your attempt is highlighted. The answer panel stays plain."
               : showAnswer
                 ? "Your attempt is frozen. Use Restart to try again."
-                : "Work the panel, then reveal the answer when you are ready."}
+                : ""}
           </p>
         </div>
 
@@ -299,7 +289,7 @@ export function PracticePanel() {
                 const reaction = caseData.reactions[cell.id];
                 const proofMark = displayProofMarks[cell.id] ?? "none";
                 const compareProofMark = compareProofMarks[cell.id] ?? "none";
-                const proofComparisonClass = showAnswer && !isAnswerMode ? getComparisonClass(proofMark, compareProofMark, true) : "";
+                const proofComparisonClass = compareActive ? getComparisonClass(proofMark, compareProofMark, true) : "";
 
                 return (
                   <tr key={cell.id}>
@@ -340,7 +330,7 @@ export function PracticePanel() {
                     {antibodies.map((antibody) => {
                       const displayMark = getMark(displayRuleOutMarks, antibody.id, cell.id);
                       const compareMark = getMark(compareRuleOutMarks, antibody.id, cell.id);
-                      const comparisonClass = showAnswer && !isAnswerMode ? getComparisonClass(displayMark, compareMark, true) : "";
+                      const comparisonClass = compareActive ? getComparisonClass(displayMark, compareMark, true) : "";
                       const disabled = !interactive || !canMarkRuleOut(cell, antibody);
 
                       return (
@@ -379,7 +369,9 @@ export function PracticePanel() {
                 {antibodies.map((antibody) => {
                   const displayStatus = displayStatusMarks[antibody.id] ?? "none";
                   const compareStatus = compareStatusMarks[antibody.id] ?? "none";
-                  const statusComparisonClass = showAnswer && !isAnswerMode ? getStatusComparisonClass(displayStatus, compareStatus, true) : "";
+                  const statusComparisonClass = compareActive
+                    ? getComparisonClass(displayStatus, compareStatus, true, true)
+                    : "";
 
                   return (
                     <th
@@ -390,14 +382,14 @@ export function PracticePanel() {
                       ].join(" ")}
                       key={antibody.id}
                       title={showAnswer ? "Frozen comparison view." : "Click to cycle status."}
+                    >
+                      <button
+                        aria-label={`${antibody.label} status ${manualStatusLabels[displayStatus] || "blank"}`}
+                        className={["status-cell-button", displayStatus !== "none" ? `status-${displayStatus}` : ""].join(" ")}
+                        disabled={!interactive}
+                        type="button"
+                        onClick={() => toggleStatus(antibody)}
                       >
-                        <button
-                          aria-label={`${antibody.label} status ${manualStatusLabels[displayStatus] || "blank"}`}
-                          className={["status-cell-button", displayStatus !== "none" ? `status-${displayStatus}` : ""].join(" ")}
-                          disabled={!interactive}
-                          type="button"
-                          onClick={() => toggleStatus(antibody)}
-                        >
                         {manualStatusLabels[displayStatus]}
                       </button>
                     </th>
@@ -460,7 +452,10 @@ export function PracticePanel() {
             id={`final-answer-${caseId}`}
             value={selectedAnswerId}
             disabled={showAnswer}
-            className={["final-answer-select", showAnswer ? getFinalAnswerComparisonClass(selectedAnswerId, caseData.targetAntibodyId, true) : ""].join(" ")}
+            className={[
+              "final-answer-select",
+              showAnswer ? getComparisonClass(selectedAnswerId, caseData.targetAntibodyId, true) : "",
+            ].join(" ")}
             onChange={(event) => setSelectedAnswerId(event.target.value)}
           >
             <option value="">Choose antibody</option>
@@ -490,40 +485,6 @@ export function PracticePanel() {
       ) : (
         renderTable("user")
       )}
-
-      <section className="feedback" aria-label="Practice feedback">
-        <article className="card">
-          <h2>How To Use The Panel</h2>
-          <p>
-            Click antigen-positive cells to cycle blank, heterozygous, and homozygous
-            marks. Click the cell number to cycle proof marks. Click the footer status
-            cells to cycle blank, partial, out, and suspect. Reveal freezes your attempt
-            and shows the answer beside it.
-          </p>
-        </article>
-        <article className="card">
-          <h2>Answer Check</h2>
-          {showAnswer ? (
-            <>
-              <p className="answer-summary">{caseData.summary}</p>
-              <p>
-                Your selected answer: <strong>{selectedAnswer?.label ?? "None"}</strong>
-              </p>
-              <p>
-                Correct answer: <strong>{targetAntibody?.label ?? "Unknown"}</strong>
-              </p>
-              <p>
-                Differences are highlighted in red or green on your attempt. The answer panel stays plain.
-              </p>
-            </>
-          ) : (
-            <p>
-              Choose a final answer, work the panel, and click Reveal answer when you are
-              ready to compare your attempt with the key.
-            </p>
-          )}
-        </article>
-      </section>
     </div>
   );
 }

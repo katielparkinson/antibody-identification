@@ -6,6 +6,11 @@ test("practice panel loads the antibody identification workspace", async ({ page
   await expect(
     page.getByRole("heading", { name: /rule out antibodies from an 11-cell panel/i }),
   ).toBeVisible();
+  await expect(page.getByRole("heading", { name: /procedure/i })).toBeVisible();
+  await expect(page.getByText(/rule out means/i)).toBeVisible();
+  await expect(page.getByText(/het means one antigen copy/i)).toBeVisible();
+  await expect(page.getByText(/rule in means enough positive and negative cells/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: /answer check/i })).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("button", { name: /reveal answer/i })).toBeVisible();
 

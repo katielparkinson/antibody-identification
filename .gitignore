@@ -36,3 +36,4 @@ data/*.sqlite-*
 .DS_Store
 .idea/
 .vscode/
+notes/immunohematology-antibody-identification.md
