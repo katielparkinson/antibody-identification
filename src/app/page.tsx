@@ -67,9 +67,9 @@ export default function Home() {
           <article className="card">
             <h3>Know the usual clues</h3>
             <p>
-              Clinically significant antibodies usually react at 37 C and/or AHG,
-              and the autocontrol or DAT can help separate alloantibody from
-              autoantibody or mixed findings.
+              Clinically significant antibodies usually react at 37 C and/or AHG
+              (antihuman globulin), and the autocontrol or DAT (direct antiglobulin
+              test) can help separate alloantibody from autoantibody or mixed findings.
             </p>
           </article>
           <article className="card">
@@ -127,54 +127,56 @@ export default function Home() {
           <p className="eyebrow">Marks</p>
           <h2>The only notation the practice page uses.</h2>
         </div>
-        <div className="split-layout">
-          <article className="card">
-            <h3>Rule out</h3>
-            <p>
-              Rule out means a nonreactive cell carries the antigen for an
-              antibody you are considering. If that cell does not react, that
-              antibody becomes less likely. For dosage-sensitive antibodies,
-              homozygous cells are stronger rule-out evidence than heterozygous
-              cells.
-            </p>
-            <p>
-              In this app, rule-out marks are placed on the antigen cells:
-              <strong>Het</strong> means one antigen copy and <strong>Hom</strong>{" "}
-              means two antigen copies.
-            </p>
-          </article>
-          <article className="card">
-            <h3>Rule in</h3>
-            <p>
-              Rule in means the overall pattern supports one antibody better
-              than the others. A common teaching target is 3 antigen-positive
-              reactive cells and 3 antigen-negative nonreactive cells that fit
-              the same specificity.
-            </p>
-            <p>
-              In this app, proof marks go on the cell number: <strong>+</strong>{" "}
-              for an antigen-positive reactive cell and <strong>-</strong> for an
-              antigen-negative nonreactive cell.
-            </p>
-          </article>
-        </div>
-        <div className="split-layout">
-          <article className="card">
-            <h3>Dosage</h3>
-            <p>
-              Dosage means an antibody reacts more strongly with cells that have
-              two copies of the antigen than with cells that have one copy. That
-              is why Rh, Duffy, Kidd, and MNS are classic dosage systems.
-            </p>
-          </article>
-          <article className="card">
-            <h3>Status row</h3>
-            <p>
-              The footer status row is just a running judgment: <strong>Suspect</strong>{" "}
-              means possible, <strong>Partial</strong> means some evidence, and{" "}
-              <strong>Out</strong> means ruled out.
-            </p>
-          </article>
+        <div className="marks-layout">
+          <div className="split-layout">
+            <article className="card">
+              <h3>Rule out</h3>
+              <p>
+                Rule out means a nonreactive cell carries the antigen for an
+                antibody you are considering. If that cell does not react, that
+                antibody becomes less likely. For dosage-sensitive antibodies,
+                homozygous cells are stronger rule-out evidence than heterozygous
+                cells.
+              </p>
+              <p>
+                In this app, rule-out marks are placed on the antigen cells:
+                <strong>Het</strong> means one antigen copy and <strong>Hom</strong>{" "}
+                means two antigen copies.
+              </p>
+            </article>
+            <article className="card">
+              <h3>Rule in</h3>
+              <p>
+                Rule in means the overall pattern supports one antibody better
+                than the others. A common teaching target is 3 antigen-positive
+                reactive cells and 3 antigen-negative nonreactive cells that fit
+                the same specificity.
+              </p>
+              <p>
+                In this app, proof marks go on the cell number: <strong>+</strong>{" "}
+                for an antigen-positive reactive cell and <strong>-</strong> for an
+                antigen-negative nonreactive cell.
+              </p>
+            </article>
+          </div>
+          <div className="split-layout">
+            <article className="card">
+              <h3>Dosage</h3>
+              <p>
+                Dosage means an antibody reacts more strongly with cells that have
+                two copies of the antigen than with cells that have one copy. That
+                is why Rh, Duffy, Kidd, and MNS are classic dosage systems.
+              </p>
+            </article>
+            <article className="card">
+              <h3>Status row</h3>
+              <p>
+                The footer status row is just a running judgment: <strong>Suspect</strong>{" "}
+                means possible, <strong>Partial</strong> means some evidence, and{" "}
+                <strong>Out</strong> means ruled out.
+              </p>
+            </article>
+          </div>
         </div>
       </section>
 

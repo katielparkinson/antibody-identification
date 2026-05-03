@@ -239,6 +239,11 @@ h3 {
   gap: 18px;
 }
 
+.marks-layout {
+  display: grid;
+  gap: 18px;
+}
+
 .grid-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }

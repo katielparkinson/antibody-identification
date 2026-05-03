@@ -16,6 +16,12 @@ export default function PracticePage() {
       <section className="section">
         <div className="stacked-cards">
           <article className="card">
+            <p>
+              This exercise follows common educational teaching rules. Real blood bank
+              procedures and interpretation thresholds vary by lab policy and case context.
+            </p>
+          </article>
+          <article className="card">
             <h2>Procedure</h2>
             <ol>
               <li>Start with the reaction pattern and the autocontrol.</li>
@@ -47,12 +53,14 @@ export default function PracticePage() {
               </li>
               <li>
                 Use the footer status row as your running judgment:
-                <strong>Partial</strong> = some evidence, <strong>Out</strong> = ruled out,
+                {" "}
+                <strong>Partial</strong> = some evidence, {" "}
+                <strong>Out</strong> = ruled out, {" "}
                 <strong>Suspect</strong> = still possible.
               </li>
               <li>
                 Choose your final answer when the pattern feels complete. Rule
-                in means enough positive and negative cells support one antibody.
+                in means that enough positive and negative cells support a single antibody.
               </li>
               <li>Reveal the answer to freeze your attempt and compare your work.</li>
               <li>Restart the case to try again from a clean slate.</li>
@@ -92,7 +100,7 @@ export default function PracticePage() {
             <h2>Answer Check</h2>
             <ul>
               <li>The answer view stays plain.</li>
-              <li>Your attempt stays visible above the answer key after reveal and is highlighted where it differs.</li>
+              <li>Your attempt stays visible above the answer key after reveal, and differences are highlighted.</li>
               <li>Use Restart to clear the case and try again.</li>
             </ul>
           </article>
