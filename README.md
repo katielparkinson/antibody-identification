@@ -1,15 +1,15 @@
 # Antibody Identification
 
-Antibody Identification is a resume-focused educational Next.js app for practicing classic blood bank antibody identification panels.
+Antibody Identification is an educational Next.js app for practicing classic blood bank antibody identification panels.
 
-The MVP includes:
+The project includes:
 
 - A brief learning page explaining antibody identification concepts.
 - A practice page with synthetic 11-cell donor panels and an autocontrol.
 - Interactive rule-out marking for heterozygous, homozygous, and fully ruled-out states.
 - A tested TypeScript rule-out engine based on configurable educational policy.
 
-This project is for education and portfolio demonstration only. It is not medical decision support.
+This project is for education only. It is not medical decision support.
 
 ## Development
 
